@@ -101,7 +101,7 @@ export function updateTopbar() {
   if (state.cheated) {
     ui.highScoreEl.innerHTML = '✗';
   } else {
-    ui.highScoreEl.textContent = state.highScore;
+    ui.highScoreEl.textContent = `${state.highScore} 🏆`;
   }
   ui.betRange.min = String(state.minBet);
   ui.betRange.max = Math.min(MAX_BET, state.chips).toString();
