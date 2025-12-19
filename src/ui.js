@@ -63,9 +63,9 @@ export function createCardEl(card, faceDown = false) {
   const red = (card.suit === "♥" || card.suit === "♦");
   el.classList.add(red ? "red" : "black");
   el.innerHTML = `
-    <div class="rank">${card.rank}</div>
-    <div class="suit">${card.suit}</div>
-    <div class="pip">${card.suit}</div>
+    ${card.rank}
+    ${card.suit}
+    ${card.suit}
   `;
   return el;
 }
@@ -96,7 +96,7 @@ export function renderHands(revealDealer = false) {
 export function updateTopbar() {
   ui.chipsEl.textContent = state.chips;
   ui.betEl.textContent = state.bet;
-  ui.streakEl.textContent = state.streak;
+  ui.streakEl.textContent = `${state.streak} 🔥`;  // Added flame emoji for win streak
   ui.starsEl.textContent = state.stars;
   if (state.cheated) {
     ui.highScoreEl.innerHTML = '✗';
@@ -171,11 +171,11 @@ export function renderRelicsList() {
     const el = document.createElement("div");
     el.className = "relic";
     el.innerHTML = `
-      <div class="icon">${r.icon}</div>
-      <div>
-        <div class="name">${r.name}</div>
-        <div class="desc">${r.desc}</div>
-      </div>
+      ${r.icon}
+      
+        ${r.name}
+        ${r.desc}
+      
     `;
     ui.relicsContainer.appendChild(el);
   });
