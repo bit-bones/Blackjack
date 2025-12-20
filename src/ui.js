@@ -1,4 +1,4 @@
-import { state } from './state.js';
+import { state, handTotal, hasRelic } from './state.js';
 import { MAX_BET } from './constants.js';
 
 export const $ = (sel) => document.querySelector(sel);
@@ -62,7 +62,7 @@ export function createCardEl(card, faceDown = false) {
   }
   const red = (card.suit === "♥" || card.suit === "♦");
   el.classList.add(red ? "red" : "black");
-  el.innerHTML = `<span class="rank">${card.rank}</span><span class="suit">${card.suit}</span><span class="pip">${card.suit}</span>`;
+  el.innerHTML = `${card.rank}<span class="rank">${card.rank}</span><span class="suit">${card.suit}</span><span class="pip">${card.rank}</span>`;
   return el;
 }
 
