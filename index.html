@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Blackjack: Rogue</title>
-  <link rel="stylesheet" href="/Blackjack/styles.css">
-  <script type="module" src="/Blackjack/main.js"></script>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
   <div id="app">
-    <div class="topbar">
+    <header class="topbar">
       <div class="branding">
         <div class="logo">♠️</div>
         <div class="title">
@@ -17,34 +19,39 @@
           <p>Win hands, draft relics, and don’t go broke!</p>
         </div>
       </div>
+
       <div class="status">
         <div class="stat">
           <div class="stat-label">Chips</div>
-          <div class="stat-value" id="chips">100 🪙</div>
+          <div class="stat-value"><span id="chips">100</span> 🪙</div>
         </div>
         <div class="stat">
           <div class="stat-label">Win Streak</div>
-          <div class="stat-value" id="streak">0 🔥</div>
+          <div class="stat-value" id="streak">0</div>
         </div>
         <div class="stat">
           <div class="stat-label">Stars</div>
-          <div class="stat-value" id="stars">0 ✨</div>
+          <div class="stat-value">
+            <span id="stars">0</span> ✨
+          </div>
         </div>
         <div class="stat">
           <div class="stat-label">Best</div>
-          <div class="stat-value" id="highScore">100 🏆</div>
+          <div class="stat-value" id="highScore">100</div>
         </div>
       </div>
-    </div>
-    <div class="table">
-      <div class="felt">
+    </header>
+
+    <main class="table">
+      <section class="felt">
         <div class="dealer-area">
           <div class="role">Dealer</div>
           <div class="hand-row">
-            <div class="hand" id="dealer-hand"></div>
-            <div class="total" id="dealer-total">Total: 0</div>
+            <div id="dealer-hand" class="hand"></div>
+            <div id="dealer-total" class="total">Total: 0</div>
           </div>
         </div>
+
         <div class="shoe">
           <div class="deck-stack">
             <div class="deck-card"></div>
@@ -53,114 +60,131 @@
           </div>
           <div class="shoe-label">Fresh Deck</div>
         </div>
+
         <div class="player-area">
           <div class="role">You</div>
           <div class="hand-row">
-            <div class="hand" id="player-hand"></div>
-            <div class="total" id="player-total">Total: 0</div>
+            <div id="player-hand" class="hand"></div>
+            <div id="player-total" class="total">Total: 0</div>
           </div>
         </div>
-        <div class="controls">
-          <div class="betting">
-            <label for="betRange">Bet</label>
-            <input type="range" id="betRange" min="5" max="100" value="25">
-            <div class="bet-display">
-              <div class="bet-label">Bet</div>
-              <div class="bet-value" id="bet">25 🪙</div>
-            </div>
-            <div class="bet-quick">
-              <button class="pill" data-bet="min">Min</button>
-              <button class="pill" data-bet="half">Half</button>
-              <button class="pill" data-bet="allin">All-in</button>
-            </div>
+      </section>
+
+      <div class="controls">
+        <div class="betting">
+          <div>
+            <div class="bet-label">Bet</div>
+            <div class="bet-display"><span id="bet">10</span> 🪙</div>
           </div>
-          <div class="actions">
-            <button id="dealBtn" class="primary">Deal</button>
-            <button id="hitBtn">Hit</button>
-            <button id="standBtn">Stand</button>
-            <button id="doubleBtn">Double</button>
-            <button id="surrenderBtn">Surrender</button>
-            <button id="peekBtn" style="display: none;">Peek 👁️</button>
+          <input type="range" id="betRange" min="5" max="100" step="5" value="10">
+          <div class="bet-quick">
+            <button class="pill" data-bet="min">Min</button>
+            <button class="pill" data-bet="half">Half</button>
+            <button class="pill" data-bet="allin">All-in</button>
           </div>
-          <div class="tips" id="hint">Place your bet and press Deal.</div>
+        </div>
+
+        <div class="actions">
+          <button id="dealBtn" class="primary">Deal</button>
+          <button id="hitBtn" disabled>Hit</button>
+          <button id="standBtn" disabled>Stand</button>
+          <button id="doubleBtn" disabled>Double</button>
+          <button id="surrenderBtn" disabled>Surrender</button>
+          <button id="peekBtn" class="ghost" style="display:none">Peek 👁️</button>
+        </div>
+
+        <div id="hint" class="tips">
+          Place your bet and press Deal.
         </div>
       </div>
-      <div class="relics">
+
+      <aside class="relics">
         <h2>Relics</h2>
-        <div class="relics-list" id="relicsContainer"></div>
-      </div>
-    </div>
+        <div id="relicsContainer" class="relics-list"></div>
+      </aside>
+    </main>
   </div>
+
   <div id="toast" class="toast">Toast Message</div>
-  <div class="modal hidden" id="resultModal">
+
+  <!-- Result Modal -->
+  <div id="resultModal" class="modal hidden">
     <div class="modal-content">
       <h3 id="resultTitle">Hand Result</h3>
       <div class="result-rows">
         <div class="result-row">
-          <div class="result-text label" id="resultMainText">Win +10</div>
-          <div class="value" id="resultChipTotal">110 🪙</div>
+          <div id="resultMainText" class="result-text label">Win +10</div>
+          <div id="resultChipTotal" class="value">110 🪙</div>
         </div>
-        <div class="result-row" id="resultStarsRow" style="display: none;">
-          <div class="label" id="resultStarsText">Stars +1</div>
-          <div class="value" id="resultStarTotal">2 ✨</div>
+        <div id="resultStarsRow" class="result-row" style="display:none">
+          <div id="resultStarsText" class="label">Stars +1</div>
+          <div id="resultStarTotal" class="value">2 ✨</div>
         </div>
       </div>
       <div class="modal-buttons">
-        <button id="resultGambleBtn" style="display: none;">Gamble Payout ⚠️</button>
+        <button id="resultGambleBtn" class="primary" style="display:none">Gamble Payout ⚠️</button>
         <button id="resultContinueBtn" class="primary">Continue</button>
       </div>
     </div>
   </div>
-  <div class="modal hidden" id="relicModal">
+
+  <!-- Relic Choice Modal -->
+  <div id="relicModal" class="modal hidden">
     <div class="modal-content">
       <h3>Choose a Relic</h3>
-      <p>You’ve earned 3 ✨ Stars! Pick a relic to power up your run.</p>
-      <div class="relic-choices" id="relicChoices"></div>
-      <div class="modal-buttons">
-        <button id="skipRelic">Skip</button>
-      </div>
+      <p id="relicModalDesc">You’ve earned 3 ✨ Stars! Pick a relic to power up your run.</p>
+      <div id="relicChoices" class="relic-choices"></div>
+      <button id="skipRelic" class="ghost">Skip</button>
     </div>
   </div>
-  <div class="modal hidden" id="gameOverModal">
+
+  <!-- Game Over Modal -->
+  <div id="gameOverModal" class="modal hidden">
     <div class="modal-content">
       <h3>Game Over</h3>
       <p>You ran out of chips.</p>
       <p>Best Chips: <strong id="finalHighScore">0</strong></p>
-      <div class="modal-buttons">
-        <button id="restartBtn" class="primary">Start New Run</button>
-      </div>
+      <button id="restartBtn" class="primary">Start New Run</button>
     </div>
   </div>
-  <div class="modal hidden" id="menuModal">
+
+  <!-- Menu Modal -->
+  <div id="menuModal" class="modal hidden">
     <div class="modal-content">
       <h3>Menu</h3>
-      <div class="modal-buttons">
-        <button id="menuNewRunBtn">New Run</button>
+      <div class="relic-choices">
+        <button id="menuNewRunBtn" class="primary">New Run</button>
         <button id="menuRelicsBtn">Relics</button>
         <button id="menuHotkeysBtn">Hotkeys</button>
       </div>
     </div>
   </div>
-  <div class="modal hidden" id="relicListModal">
+
+  <!-- All Relics List Modal (Cheat/Test) -->
+  <div id="relicListModal" class="modal hidden">
     <div class="modal-content">
       <h3>All Relics</h3>
       <p>Activate relics for testing (marks run as cheated).</p>
-      <div class="relics-list scrollable" id="allRelicsList"></div>
-      <div class="modal-buttons">
-        <button id="closeRelicListBtn">Close</button>
-      </div>
+      <div id="allRelicsList" class="relics-list scrollable"></div>
+      <button id="closeRelicListBtn">Close</button>
     </div>
   </div>
-  <div class="modal hidden" id="hotkeysModal">
+
+  <!-- Hotkeys Modal -->
+  <div id="hotkeysModal" class="modal hidden">
     <div class="modal-content">
       <h3>Keyboard Hotkeys</h3>
       <p>Click a key to rebind it.</p>
-      <div id="hotkeysList"></div>
+      <div id="hotkeysList" class="relics-list scrollable">
+        <!-- Content generated by JS -->
+      </div>
       <div class="modal-buttons">
-        <button id="resetHotkeysBtn">Reset Defaults</button>
-        <button id="closeHotkeysBtn">Close</button>
+        <button id="resetHotkeysBtn" class="ghost">Reset Defaults</button>
+        <button id="closeHotkeysBtn" class="primary">Close</button>
       </div>
     </div>
   </div>
+
+  <script type="module" src="src/main.js"></script>
 </body>
 </html>
