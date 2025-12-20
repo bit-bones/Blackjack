@@ -1,4 +1,4 @@
-import { state, handTotal, hasRelic } from './state.js';
+import { state } from './state.js';
 import { MAX_BET } from './constants.js';
 
 export const $ = (sel) => document.querySelector(sel);
@@ -62,11 +62,7 @@ export function createCardEl(card, faceDown = false) {
   }
   const red = (card.suit === "♥" || card.suit === "♦");
   el.classList.add(red ? "red" : "black");
-  el.innerHTML = `
-    ${card.rank}
-    ${card.suit}
-    ${card.suit}
-  `;
+  el.innerHTML = `<span class="rank">${card.rank}</span><span class="suit">${card.suit}</span><span class="pip">${card.suit}</span>`;
   return el;
 }
 
@@ -171,11 +167,9 @@ export function renderRelicsList() {
     const el = document.createElement("div");
     el.className = "relic";
     el.innerHTML = `
-      ${r.icon}
-      
-        ${r.name}
-        ${r.desc}
-      
+      <div class="icon">${r.icon}</div>
+      <div class="name">${r.name}</div>
+      <div class="desc">${r.desc}</div>
     `;
     ui.relicsContainer.appendChild(el);
   });
