@@ -88,6 +88,7 @@ ui.skipRelicBtn.addEventListener("click", gameActions.onSkipRelic);
 ui.menuNewRunBtn.addEventListener("click", gameActions.onMenuNewRun);
 ui.menuRelicsBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); ui.relicListModal.classList.remove("hidden"); renderAllRelicsList(); });
 ui.menuHotkeysBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); renderHotkeys(); ui.hotkeysModal.classList.remove("hidden"); });
+ui.menuResumeBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); });
 ui.closeRelicListBtn.addEventListener("click", () => ui.relicListModal.classList.add("hidden"));
 ui.closeHotkeysBtn.addEventListener("click", () => ui.hotkeysModal.classList.add("hidden"));
 ui.resetHotkeysBtn.addEventListener("click", resetHotkeysToDefault);
