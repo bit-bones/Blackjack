@@ -56,17 +56,31 @@ export const ui = {
 export function createCardEl(card, faceDown = false) {
   const el = document.createElement("div");
   el.className = "card deal-in";
+
   if (faceDown) {
     el.classList.add("face-down");
     return el;
   }
+
   const red = (card.suit === "♥" || card.suit === "♦");
   el.classList.add(red ? "red" : "black");
-  el.innerHTML = `
-    ${card.rank}
-    ${card.suit}
-    ${card.suit}
-  `;
+
+  const rankEl = document.createElement("div");
+  rankEl.className = "rank";
+  rankEl.textContent = card.rank;
+
+  const suitEl = document.createElement("div");
+  suitEl.className = "suit";
+  suitEl.textContent = card.suit;
+
+  const pipEl = document.createElement("div");
+  pipEl.className = "pip";
+  pipEl.textContent = card.suit;
+
+  el.appendChild(rankEl);
+  el.appendChild(suitEl);
+  el.appendChild(pipEl);
+
   return el;
 }
 
