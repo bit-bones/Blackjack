@@ -135,7 +135,7 @@ button.pulse{ animation: pulse .9s ease 2; }
   right: 8px;
   bottom: 6px;
   font-size: 14px;
-  transform: rotate(90deg);
+  transform: rotate(270deg);
   transform-origin: center;
 }
 .card .pip{
