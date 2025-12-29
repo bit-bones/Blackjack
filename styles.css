@@ -135,6 +135,8 @@ button.pulse{ animation: pulse .9s ease 2; }
   right: 8px;
   bottom: 6px;
   font-size: 14px;
+  transform: rotate(180deg); /* optional: remove if you want it upright */
+  transform-origin: center;
 }
 .card .pip{
   position:absolute; inset: 0; display:grid; place-items:center; font-size: 28px; filter: drop-shadow(0 2px 0 rgba(0,0,0,0.1));
