@@ -43,6 +43,7 @@ export const ui = {
   menuNewRunBtn: $("#menuNewRunBtn"),
   menuRelicsBtn: $("#menuRelicsBtn"),
   menuHotkeysBtn: $("#menuHotkeysBtn"),
+  menuResumeBtn: $("#menuResumeBtn"),
   relicListModal: $("#relicListModal"),
   allRelicsListEl: $("#allRelicsList"),
   closeRelicListBtn: $("#closeRelicListBtn"),
