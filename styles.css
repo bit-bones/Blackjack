@@ -316,3 +316,14 @@ button.pulse{ animation: pulse .9s ease 2; }
   .card{ width: 64px; height: 92px }
   .deck-stack{ width: 64px; height: 84px }
 }
+
+#menuModal .relic-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 10px;
+  align-items: stretch;
+}
+#menuModal .relic-choices button {
+  width: 100%;
+}
