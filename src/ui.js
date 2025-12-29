@@ -40,6 +40,7 @@ export const ui = {
   finalHighScoreEl: $("#finalHighScore"),
   restartBtn: $("#restartBtn"),
   menuModal: $("#menuModal"),
+  menuResumeBtn: $("#menuResumeBtn"),
   menuNewRunBtn: $("#menuNewRunBtn"),
   menuRelicsBtn: $("#menuRelicsBtn"),
   menuHotkeysBtn: $("#menuHotkeysBtn"),

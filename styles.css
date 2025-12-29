@@ -130,13 +130,12 @@ button.pulse{ animation: pulse .9s ease 2; }
   transform: translateY(0); transition: transform .2s ease;
 }
 .card .rank{ position: absolute; top: 6px; left: 8px; font-weight: 800; }
-/* UPDATED: moved small suit to bottom-right and optionally rotated it */
 .card .suit{
   position: absolute;
   right: 8px;
-  bottom: 6px;          /* <-- changed from top: 6px */
+  bottom: 6px;
   font-size: 14px;
-  transform: rotate(0deg) !important;
+  transform: rotate(0deg);
   transform-origin: center;
 }
 .card .pip{
@@ -214,7 +213,7 @@ button.pulse{ animation: pulse .9s ease 2; }
   display:grid; grid-template-columns: 40px 1fr; gap: 10px; align-items:center;
 }
 .choice:hover{ border-color: #2a3f77 }
-.choice .icon{ width:40px; height:40px; display:grid; place-items:center; background:#111b32; border-radius: 8px; font-size:20px }
+.choice .icon{ width:40px; height:40px; display:column; place-items:center; background:#111b32; border-radius: 8px; font-size:20px }
 .choice .name{ font-weight: 700 }
 .choice .desc{ color: var(--muted); font-size: 13px; margin-top: 2px }
 

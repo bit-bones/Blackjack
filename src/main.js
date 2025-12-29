@@ -86,6 +86,7 @@ ui.resultGambleBtn.addEventListener("click", onGamblePayout);
 ui.restartBtn.addEventListener("click", gameActions.onMenuNewRun);
 ui.skipRelicBtn.addEventListener("click", gameActions.onSkipRelic);
 ui.menuNewRunBtn.addEventListener("click", gameActions.onMenuNewRun);
+ui.menuResumeBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); });
 ui.menuRelicsBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); ui.relicListModal.classList.remove("hidden"); renderAllRelicsList(); });
 ui.menuHotkeysBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); renderHotkeys(); ui.hotkeysModal.classList.remove("hidden"); });
 ui.closeRelicListBtn.addEventListener("click", () => ui.relicListModal.classList.add("hidden"));
