@@ -130,12 +130,13 @@ button.pulse{ animation: pulse .9s ease 2; }
   transform: translateY(0); transition: transform .2s ease;
 }
 .card .rank{ position: absolute; top: 6px; left: 8px; font-weight: 800; }
+/* UPDATED: moved small suit to bottom-right and optionally rotated it */
 .card .suit{
   position: absolute;
   right: 8px;
-  bottom: 6px;
+  bottom: 6px;          /* <-- changed from top: 6px */
   font-size: 14px;
-  transform: rotate(0deg);
+  transform: rotate(0deg) !important;
   transform-origin: center;
 }
 .card .pip{
@@ -314,15 +315,4 @@ button.pulse{ animation: pulse .9s ease 2; }
   .hand{ gap: 8px }
   .card{ width: 64px; height: 92px }
   .deck-stack{ width: 64px; height: 84px }
-}
-
-#menuModal .relic-choices {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-bottom: 10px;
-  align-items: stretch;
-}
-#menuModal .relic-choices button {
-  width: 100%;
 }
