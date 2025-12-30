@@ -247,14 +247,21 @@ export function openResultModal(outcome, info, chipTotal, starGain, starTotal, c
   outcomeSpan.textContent = info;
   ui.resultMainTextEl.appendChild(outcomeSpan);
   // show total of chip bonuses at end for wins/blackjack
-  if ((outcome === "win" || outcome === "blackjack") && state.lastWinDelta > 0) {
-    const totalSpan = document.createElement("span");
-    totalSpan.className = "win-total";
-    totalSpan.style.marginLeft = "8px";
+  if (outcome === "win" || outcome === "blackjack") {
+    // determine base amount (what would be shown if there are no extra bonuses)
+    let baseVal = 0;
+    if (outcome === "blackjack") baseVal = Math.floor(state.bet * getRelicHookValue("blackjackPayout", 1.5));
+    else baseVal = state.bet;
     const val = state.lastWinDelta;
-    totalSpan.textContent = ` (${val})`;
-    totalSpan.style.color = val > 0 ? 'var(--success)' : '#888';
-    ui.resultMainTextEl.appendChild(totalSpan);
+    // only show the aggregate total if there are extra bonuses beyond the base amount
+    if (val !== baseVal) {
+      const totalSpan = document.createElement("span");
+      totalSpan.className = "win-total";
+      totalSpan.style.marginLeft = "8px";
+      totalSpan.textContent = ` (${val})`;
+      totalSpan.style.color = val > 0 ? 'var(--success)' : '#888';
+      ui.resultMainTextEl.appendChild(totalSpan);
+    }
   }
   ui.resultChipTotalEl.textContent = `${chipTotal} 🪙`;
 
