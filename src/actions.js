@@ -238,8 +238,21 @@ export function endHand(outcome, opts = {}) {
 export function openResultModal(outcome, info, chipTotal, starGain, starTotal, canGamble = false) {
   let title = outcome === "blackjack" ? "Blackjack!" : outcome === "win" ? "You Win!" : outcome === "lose" ? "Dealer Wins" : "Push";
   ui.resultTitleEl.textContent = title;
-  ui.resultMainTextEl.textContent = info;
-  ui.resultMainTextEl.className = "result-text label " + (outcome === "win" ? "result-win" : outcome === "lose" ? "result-lose" : outcome === "push" ? "result-push" : "result-blackjack");
+  // build structured result line so parts can be colored/updated independently
+  ui.resultMainTextEl.className = "result-text label";
+  ui.resultMainTextEl.innerHTML = "";
+  const outcomeSpan = document.createElement("span");
+  outcomeSpan.className = outcome === "win" ? "result-win" : outcome === "lose" ? "result-lose" : outcome === "push" ? "result-push" : "result-blackjack";
+  outcomeSpan.textContent = info;
+  ui.resultMainTextEl.appendChild(outcomeSpan);
+  // show total of chip bonuses at end for wins/blackjack
+  if ((outcome === "win" || outcome === "blackjack") && state.lastWinDelta > 0) {
+    const totalSpan = document.createElement("span");
+    totalSpan.className = "win-total";
+    totalSpan.style.marginLeft = "8px";
+    totalSpan.textContent = ` (${state.lastWinDelta})`;
+    ui.resultMainTextEl.appendChild(totalSpan);
+  }
   ui.resultChipTotalEl.textContent = `${chipTotal} 🪙`;
 
   if (starGain > 0) {
@@ -276,13 +289,29 @@ export function onGamblePayout() {
   if (!hasRelic("double-or-nothing") || state.lastWinDelta <= 0) return;
   ui.resultGambleBtn.disabled = true;
   const amount = state.lastWinDelta;
+  // append a neutral 'Gamble:' label
+  const labelSpan = document.createElement("span");
+  labelSpan.textContent = " Gamble: ";
+  labelSpan.style.color = "#888";
+  ui.resultMainTextEl.appendChild(labelSpan);
+
+  const resultSpan = document.createElement("span");
   if (Math.random() < 0.5) {
     state.chips += amount; toast(`Gamble success! +${amount}`);
-    ui.resultMainTextEl.innerHTML += ` Gamble: Doubled! +${amount}⚠️`;
+    resultSpan.className = "result-win";
+    resultSpan.textContent = `Doubled! +${amount}`;
+    // update displayed total to doubled amount
+    const totalSpan = ui.resultMainTextEl.querySelector('.win-total');
+    if (totalSpan) totalSpan.textContent = ` (${state.lastWinDelta * 2})`;
   } else {
     state.chips -= amount; toast(`Gamble failed! -${amount}`);
-    ui.resultMainTextEl.innerHTML += ` Gamble: Lost! -${amount}⚠️`;
+    resultSpan.className = "result-lose";
+    resultSpan.textContent = `Lost! -${amount}`;
+    // update displayed total to reflect loss (0)
+    const totalSpan = ui.resultMainTextEl.querySelector('.win-total');
+    if (totalSpan) totalSpan.textContent = ` (0)`;
   }
+  ui.resultMainTextEl.appendChild(resultSpan);
   updateTopbar();
 }
 
