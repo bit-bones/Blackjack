@@ -239,10 +239,11 @@ export function openResultModal(outcome, info, chipTotal, starGain, starTotal, c
   let title = outcome === "blackjack" ? "Blackjack!" : outcome === "win" ? "You Win!" : outcome === "lose" ? "Dealer Wins" : "Push";
   ui.resultTitleEl.textContent = title;
   // build structured result line so parts can be colored/updated independently
-  ui.resultMainTextEl.className = "result-text label";
+  const outcomeClass = outcome === "win" ? "result-win" : outcome === "lose" ? "result-lose" : outcome === "push" ? "result-push" : "result-blackjack";
+  ui.resultMainTextEl.className = "result-text label " + outcomeClass;
   ui.resultMainTextEl.innerHTML = "";
   const outcomeSpan = document.createElement("span");
-  outcomeSpan.className = outcome === "win" ? "result-win" : outcome === "lose" ? "result-lose" : outcome === "push" ? "result-push" : "result-blackjack";
+  outcomeSpan.className = "outcome-text";
   outcomeSpan.textContent = info;
   ui.resultMainTextEl.appendChild(outcomeSpan);
   // show total of chip bonuses at end for wins/blackjack
@@ -298,15 +299,15 @@ export function onGamblePayout() {
   const resultSpan = document.createElement("span");
   if (Math.random() < 0.5) {
     state.chips += amount; toast(`Gamble success! +${amount}`);
-    resultSpan.className = "result-win";
     resultSpan.textContent = `Doubled! +${amount}`;
+    resultSpan.style.color = "var(--success)";
     // update displayed total to doubled amount
     const totalSpan = ui.resultMainTextEl.querySelector('.win-total');
     if (totalSpan) totalSpan.textContent = ` (${state.lastWinDelta * 2})`;
   } else {
     state.chips -= amount; toast(`Gamble failed! -${amount}`);
-    resultSpan.className = "result-lose";
     resultSpan.textContent = `Lost! -${amount}`;
+    resultSpan.style.color = "var(--danger)";
     // update displayed total to reflect loss (0)
     const totalSpan = ui.resultMainTextEl.querySelector('.win-total');
     if (totalSpan) totalSpan.textContent = ` (0)`;

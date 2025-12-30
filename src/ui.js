@@ -187,13 +187,7 @@ export function renderRelicsList() {
   state.relics.forEach(r => {
     const el = document.createElement("div");
     el.className = "relic";
-    el.innerHTML = `
-      ${r.icon}
-      
-        ${r.name}
-        ${r.desc}
-      
-    `;
+    el.innerHTML = `<div class="icon">${r.icon}</div><div><div class="name">${r.name}</div><div class="desc">${r.desc}</div></div>`;
     ui.relicsContainer.appendChild(el);
   });
 }
