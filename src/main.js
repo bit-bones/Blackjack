@@ -1,5 +1,5 @@
 import { state, resetHandFlags } from './state.js';
-import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, showHint, toast } from './ui.js';
+import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast } from './ui.js';
 import { onDeal, onHit, onStand, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
@@ -39,6 +39,8 @@ const gameActions = {
     // explicitly clear DOM and totals to be safe
     ui.dealerHandEl.innerHTML = ""; ui.playerHandEl.innerHTML = "";
     ui.dealerTotalEl.textContent = "Total: 0"; ui.playerTotalEl.textContent = "Total: 0";
+    // remove any win/lose/push classes left from previous run
+    setTotalsStyles(null);
     setPhaseControls(); showHint("New run! Adjust bet and press Deal.");
   },
   quickBet: (type) => {
