@@ -312,7 +312,12 @@ export function onGamblePayout() {
     const totalSpan = ui.resultMainTextEl.querySelector('.win-total');
     if (totalSpan) totalSpan.textContent = ` (0)`;
   }
+  // append the result text (colored) and ensure the total is moved to the absolute end
+  // always add the double-or-nothing emoji after the gamble amount
+  resultSpan.textContent = resultSpan.textContent + " ⚠️";
   ui.resultMainTextEl.appendChild(resultSpan);
+  const totalSpan = ui.resultMainTextEl.querySelector('.win-total');
+  if (totalSpan) ui.resultMainTextEl.appendChild(totalSpan);
   updateTopbar();
 }
 
