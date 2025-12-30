@@ -29,8 +29,17 @@ const gameActions = {
     ui.menuModal.classList.add("hidden"); ui.gameOverModal.classList.add("hidden");
     state.chips = INITIAL_CHIPS; state.bet = 25; state.minBet = 5; state.stars = 0; state.streak = 0;
     state.relics = []; state.cheated = false; state.flags.usedResurrectionThisRun = false;
-    resetHandFlags(); renderRelicsList(); updateTopbar(); renderHands();
-    state.phase = "betting"; setPhaseControls(); showHint("New run! Adjust bet and press Deal.");
+    // clear any existing hands and flags so the UI is fully reset for the new run
+    state.dealerHand = [];
+    state.playerHand = [];
+    resetHandFlags();
+    // ensure phase is set before rendering so totals / face-down logic is correct
+    state.phase = "betting";
+    renderRelicsList(); updateTopbar(); renderHands();
+    // explicitly clear DOM and totals to be safe
+    ui.dealerHandEl.innerHTML = ""; ui.playerHandEl.innerHTML = "";
+    ui.dealerTotalEl.textContent = "Total: 0"; ui.playerTotalEl.textContent = "Total: 0";
+    setPhaseControls(); showHint("New run! Adjust bet and press Deal.");
   },
   quickBet: (type) => {
     if (type === "min") state.bet = Math.min(state.minBet, state.chips);
