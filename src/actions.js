@@ -290,34 +290,42 @@ export function onGamblePayout() {
   if (!hasRelic("double-or-nothing") || state.lastWinDelta <= 0) return;
   ui.resultGambleBtn.disabled = true;
   const amount = state.lastWinDelta;
-  // append a neutral 'Gamble:' label
-  const labelSpan = document.createElement("span");
-  labelSpan.textContent = " Gamble: ";
-  labelSpan.style.color = "#888";
-  ui.resultMainTextEl.appendChild(labelSpan);
+  // Rebuild the left result line so the total is guaranteed at the very end
+  const baseInfo = ui.resultMainTextEl.querySelector('.outcome-text')?.textContent || '';
+  const leftContainer = ui.resultMainTextEl;
+  leftContainer.innerHTML = '';
 
-  const resultSpan = document.createElement("span");
+  const outcomeSpan = document.createElement('span');
+  outcomeSpan.className = 'outcome-text';
+  outcomeSpan.textContent = baseInfo;
+  leftContainer.appendChild(outcomeSpan);
+
+  const labelSpan = document.createElement('span');
+  labelSpan.textContent = ' Gamble: ';
+  labelSpan.style.color = '#888';
+  leftContainer.appendChild(labelSpan);
+
+  const resultSpan = document.createElement('span');
+  let newTotal = 0;
   if (Math.random() < 0.5) {
     state.chips += amount; toast(`Gamble success! +${amount}`);
-    resultSpan.textContent = `Doubled! +${amount}`;
-    resultSpan.style.color = "var(--success)";
-    // update displayed total to doubled amount
-    const totalSpan = ui.resultMainTextEl.querySelector('.win-total');
-    if (totalSpan) totalSpan.textContent = ` (${state.lastWinDelta * 2})`;
+    resultSpan.textContent = `Doubled! +${amount} ⚠️`;
+    resultSpan.style.color = 'var(--success)';
+    newTotal = state.lastWinDelta * 2;
   } else {
     state.chips -= amount; toast(`Gamble failed! -${amount}`);
-    resultSpan.textContent = `Lost! -${amount}`;
-    resultSpan.style.color = "var(--danger)";
-    // update displayed total to reflect loss (0)
-    const totalSpan = ui.resultMainTextEl.querySelector('.win-total');
-    if (totalSpan) totalSpan.textContent = ` (0)`;
+    resultSpan.textContent = `Lost! -${amount} ⚠️`;
+    resultSpan.style.color = 'var(--danger)';
+    newTotal = 0;
   }
-  // append the result text (colored) and ensure the total is moved to the absolute end
-  // always add the double-or-nothing emoji after the gamble amount
-  resultSpan.textContent = resultSpan.textContent + " ⚠️";
-  ui.resultMainTextEl.appendChild(resultSpan);
-  const totalSpan = ui.resultMainTextEl.querySelector('.win-total');
-  if (totalSpan) ui.resultMainTextEl.appendChild(totalSpan);
+  leftContainer.appendChild(resultSpan);
+
+  const totalSpan = document.createElement('span');
+  totalSpan.className = 'win-total';
+  totalSpan.style.marginLeft = '8px';
+  totalSpan.textContent = ` (${newTotal})`;
+  leftContainer.appendChild(totalSpan);
+
   updateTopbar();
 }
 
