@@ -251,7 +251,9 @@ export function openResultModal(outcome, info, chipTotal, starGain, starTotal, c
     const totalSpan = document.createElement("span");
     totalSpan.className = "win-total";
     totalSpan.style.marginLeft = "8px";
-    totalSpan.textContent = ` (${state.lastWinDelta})`;
+    const val = state.lastWinDelta;
+    totalSpan.textContent = ` (${val})`;
+    totalSpan.style.color = val > 0 ? 'var(--success)' : '#888';
     ui.resultMainTextEl.appendChild(totalSpan);
   }
   ui.resultChipTotalEl.textContent = `${chipTotal} 🪙`;
@@ -324,6 +326,7 @@ export function onGamblePayout() {
   totalSpan.className = 'win-total';
   totalSpan.style.marginLeft = '8px';
   totalSpan.textContent = ` (${newTotal})`;
+  totalSpan.style.color = newTotal > 0 ? 'var(--success)' : '#888';
   leftContainer.appendChild(totalSpan);
 
   updateTopbar();
