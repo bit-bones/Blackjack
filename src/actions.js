@@ -1,5 +1,5 @@
 import { state, handTotal, isBlackjack, hasRelic, getRelicHookValue, resetHandFlags, shuffleInPlace } from './state.js';
-import { ui, renderHands, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList } from './ui.js';
+import { ui, renderHands, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList, setChipDisplay } from './ui.js';
 import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET } from './constants.js';
 
 export function newShuffledDeck() {
@@ -156,7 +156,7 @@ export function endHand(outcome, opts = {}) {
     let totalShown = win;
     starGain = 2;
     state.streak += 1;
-    info = `Blackjack! +${Math.floor(state.bet * 1.5)}🪙`;
+    info = `Blackjack! +${Math.floor(state.bet * 1.5)}`;
     if (hasRelic("blackjack-boost")) {
       const bonus = Math.floor(state.bet * 0.5);
       totalShown += bonus;
@@ -168,7 +168,7 @@ export function endHand(outcome, opts = {}) {
   } else if (outcome === "win") {
     let baseWin = state.bet;
     let totalShown = baseWin;
-    let infoParts = [`Win +${baseWin}🪙`];
+    let infoParts = [`Win +${baseWin}`];
     if (hasRelic("momentum") && state.streak >= 2) {
       const b = Math.floor(state.bet * getRelicHookValue("streakWinBoost", 0.25));
       totalShown += b; infoParts.push(`+${b}⚡`);
@@ -263,7 +263,7 @@ export function openResultModal(outcome, info, chipTotal, starGain, starTotal, c
       ui.resultMainTextEl.appendChild(totalSpan);
     }
   }
-  ui.resultChipTotalEl.textContent = `${chipTotal} 🪙`;
+  setChipDisplay(ui.resultChipTotalEl, chipTotal);
 
   if (starGain > 0) {
     ui.resultStarsRowEl.style.display = "";

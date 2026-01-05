@@ -7,7 +7,9 @@ export const $$ = (sel) => document.querySelectorAll(sel);
 // DOM Cache
 export const ui = {
   chipsEl: $("#chips"),
+  chipsIconEl: $("#chipsIcon"),
   betEl: $("#bet"),
+  betIconEl: $("#betIcon"),
   streakEl: $("#streak"),
   starsEl: $("#stars"),
   highScoreEl: $("#highScore"),
@@ -31,6 +33,8 @@ export const ui = {
   resultTitleEl: $("#resultTitle"),
   resultMainTextEl: $("#resultMainText"),
   resultChipTotalEl: $("#resultChipTotal"),
+  resultChipTotalValueEl: $("#resultChipTotalValue"),
+  resultChipTotalIconEl: $("#resultChipTotalIcon"),
   resultStarsRowEl: $("#resultStarsRow"),
   resultStarsTextEl: $("#resultStarsText"),
   resultStarTotalEl: $("#resultStarTotal"),
@@ -53,6 +57,29 @@ export const ui = {
   resetHotkeysBtn: $("#resetHotkeysBtn"),
   toastEl: $("#toast")
 };
+
+export function createChipEl() {
+  const tpl = document.getElementById('chipTemplate');
+  if (!tpl) return document.createElement('span');
+  const node = tpl.content.firstElementChild.cloneNode(true);
+  node.classList.add('chip-inline');
+  return node;
+}
+
+export function setChipDisplay(containerEl, value) {
+  if (!containerEl) return;
+  // If container has an inner numeric span, update that; otherwise reset and append numeric + icon
+  const valueSpan = containerEl.querySelector('#resultChipTotalValue');
+  if (valueSpan) {
+    valueSpan.textContent = String(value);
+    const iconHolder = containerEl.querySelector('#resultChipTotalIcon');
+    if (iconHolder && iconHolder.children.length === 0) iconHolder.appendChild(createChipEl());
+    return;
+  }
+  containerEl.innerHTML = '';
+  containerEl.appendChild(document.createTextNode(String(value) + ' '));
+  containerEl.appendChild(createChipEl());
+}
 
 export function createCardEl(card, faceDown = false) {
   const el = document.createElement("div");
@@ -112,7 +139,9 @@ export function renderHands(revealDealer = false) {
 
 export function updateTopbar() {
   ui.chipsEl.textContent = state.chips;
+  if (ui.chipsIconEl && ui.chipsIconEl.children.length === 0) ui.chipsIconEl.appendChild(createChipEl());
   ui.betEl.textContent = state.bet;
+  if (ui.betIconEl && ui.betIconEl.children.length === 0) ui.betIconEl.appendChild(createChipEl());
   ui.streakEl.textContent = `${state.streak} 🔥`;  // Added flame emoji for win streak
   ui.starsEl.textContent = state.stars;
   if (state.cheated) {
@@ -187,7 +216,25 @@ export function renderRelicsList() {
   state.relics.forEach(r => {
     const el = document.createElement("div");
     el.className = "relic";
-    el.innerHTML = `<div class="icon">${r.icon}</div><div><div class="name">${r.name}</div><div class="desc">${r.desc}</div></div>`;
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'icon';
+    if (r.icon === '🪙') {
+      // Render the chip SVG for the coin relic
+      iconDiv.appendChild(createChipEl());
+    } else {
+      iconDiv.textContent = r.icon;
+    }
+    const meta = document.createElement('div');
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'name';
+    nameDiv.textContent = r.name;
+    const descDiv = document.createElement('div');
+    descDiv.className = 'desc';
+    descDiv.textContent = r.desc;
+    meta.appendChild(nameDiv);
+    meta.appendChild(descDiv);
+    el.appendChild(iconDiv);
+    el.appendChild(meta);
     ui.relicsContainer.appendChild(el);
   });
 }

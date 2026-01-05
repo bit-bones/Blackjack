@@ -10,6 +10,25 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;800&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+  <!-- Chip SVG template (hidden) -->
+  <template id="chipTemplate">
+    <svg class="chip-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-labelledby="chipConfigTitle">
+      <title id="chipConfigTitle">Poker chip (configurable colors)</title>
+      <circle cx="12" cy="12" r="9" fill="var(--chip-fill, #dedede)" stroke="var(--chip-color, #1e88ff)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="12" cy="12" r="5.5" fill="var(--chip-fill, #dedede)" stroke="var(--chip-color, #1e88ff)" stroke-width="1.5"/>
+      <g fill="none" stroke="var(--chip-color, #1e88ff)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3.5v1.6"/>
+        <path d="M18.364 5.636l-0.9 0.9"/>
+        <path d="M20.5 12h-1.6"/>
+        <path d="M18.364 18.364l-0.9-0.9"/>
+        <path d="M12 20.5v-1.6"/>
+        <path d="M5.636 18.364l0.9-0.9"/>
+        <path d="M3.5 12h1.6"/>
+        <path d="M5.636 5.636l0.9 0.9"/>
+      </g>
+    </svg>
+  </template>
+
   <div id="app">
     <header class="topbar">
       <div class="branding">
@@ -23,7 +42,7 @@
       <div class="status">
         <div class="stat">
           <div class="stat-label">Chips</div>
-          <div class="stat-value"><span id="chips">100</span> 🪙</div>
+            <div class="stat-value"><span id="chips">100</span> <span id="chipsIcon" class="chip-placeholder"></span></div>
         </div>
         <div class="stat">
           <div class="stat-label">Win Streak</div>
@@ -74,7 +93,7 @@
         <div class="betting">
           <div>
             <div class="bet-label">Bet</div>
-            <div class="bet-display"><span id="bet">10</span> 🪙</div>
+            <div class="bet-display"><span id="bet">10</span> <span id="betIcon" class="chip-placeholder"></span></div>
           </div>
           <input type="range" id="betRange" min="5" max="100" step="5" value="10">
           <div class="bet-quick">
@@ -114,7 +133,7 @@
       <div class="result-rows">
         <div class="result-row">
           <div id="resultMainText" class="result-text label">Win +10</div>
-          <div id="resultChipTotal" class="value">110 🪙</div>
+          <div id="resultChipTotal" class="value"><span id="resultChipTotalValue">110</span> <span id="resultChipTotalIcon" class="chip-placeholder"></span></div>
         </div>
         <div id="resultStarsRow" class="result-row" style="display:none">
           <div id="resultStarsText" class="label">Stars +1</div>
