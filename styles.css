@@ -335,7 +335,7 @@ button.pulse{ animation: pulse .9s ease 2; }
 .option-select:hover { border-color: var(--primary-2); }
 .option-select:focus { border-color: var(--accent-2); box-shadow: 0 0 0 2px rgba(102,227,255,0.15); }
 
-/* ── Adjusted Crimson Royale Theme ── */
+/* ── Crimson Royale Theme ── */
 body[data-theme="crimson"] {
   --bg: #1a0a0a;
   --felt: #5c1a1a;
@@ -343,72 +343,73 @@ body[data-theme="crimson"] {
   --felt-light: #8b2a2a;
   --ink: #fff0e8;
   --muted: #c4a898;
-  --accent: #ffd166;
-  --accent-2: #ff9e6c;
+  --accent: #ffd166;          /* warm gold accent */
+  --accent-2: #66e3ff;        /* cool blue secondary accent for contrast */
   --danger: #ff6688;
   --success: #5cf2a5;
   --shadow: rgba(0,0,0,0.4);
   --card: #fff8f0;
   --card-edge: #e8d8cc;
-  --primary: #a82040;
-  --primary-2: #e6667a;
-  --highlight: #ffcccb; /* Added a highlight color */
-  --secondary: #6b3a3a; /* Added a secondary color */
+  --primary: #5c1a5c;         /* shift primary colors toward purple for variety */
+  --primary-2: #a85ca8;
 }
 body[data-theme="crimson"] {
   background: radial-gradient(1200px 600px at 20% -20%, #2e0c0c, transparent), var(--bg);
 }
 body[data-theme="crimson"] .felt {
   background: radial-gradient(800px 180px at 50% -60px, var(--felt-light), transparent), radial-gradient(1000px 400px at 50% 100%, var(--felt-dark), var(--felt)), var(--felt);
-  border-color: var(--secondary);
+  border-color: #4a1515;
 }
 body[data-theme="crimson"] .stat {
   background: #1e0e0e;
-  border-color: var(--secondary);
+  border-color: #3a1818;
 }
 body[data-theme="crimson"] .role {
-  color: var(--highlight);
+  color: #ffd6d6;
 }
 body[data-theme="crimson"] .total {
-  color: #ffe8e0;
+  /* leave text color to the generic rules so win/lose still apply */
+  color: var(--ink);
   background: rgba(0,0,0,0.25);
   border-color: rgba(255,255,255,0.08);
 }
 body[data-theme="crimson"] .deck-card {
-  background: repeating-linear-gradient(45deg,var(--secondary),var(--secondary) 6px,#2e0a0a 6px,#2e0a0a 12px);
+  background: repeating-linear-gradient(45deg,#4a1818,#4a1818 6px,#2e0a0a 6px,#2e0a0a 12px);
   border-color: #1e0606;
 }
 body[data-theme="crimson"] .card.face-down {
-  background: repeating-linear-gradient(45deg,var(--secondary),var(--secondary) 6px,#2e0a0a 6px,#2e0a0a 12px);
+  background: repeating-linear-gradient(45deg,#4a1818,#4a1818 6px,#2e0a0a 6px,#2e0a0a 12px);
   border-color: #1e0606;
 }
 body[data-theme="crimson"] .shoe-label {
-  color: var(--highlight);
+  color: #ffb8b8;
 }
 body[data-theme="crimson"] .betting,
 body[data-theme="crimson"] .relics {
   background: #1a0a0a;
-  border-color: var(--secondary);
+  border-color: #3a1818;
 }
 body[data-theme="crimson"] button {
-  background: #2a0e0e;
-  border-color: var(--secondary);
+  /* subtle purple tint instead of straight red */
+  background: #2a0e2a;
+  border-color: #4a183a;
 }
 body[data-theme="crimson"] button:hover {
-  border-color: #803030;
+  border-color: #803080;
 }
 body[data-theme="crimson"] button.primary {
   background: linear-gradient(180deg, var(--primary-2), var(--primary));
 }
 body[data-theme="crimson"] .pill {
-  background: #2a0e0e;
-  border-color: var(--secondary);
+  background: #2a0e2a;
+  border-color: #4a183a;
 }
 body[data-theme="crimson"] .pill:hover {
-  border-color: #803030;
+  border-color: #803080;
 }
 body[data-theme="crimson"] .modal-content {
-  /* Additional adjustments can be added here */
+  background: #1a0a0a;
+  border-color: #3a1818;
 }
 body[data-theme="crimson"] .relic,
 body[data-theme="crimson"] .choice,
@@ -420,7 +421,7 @@ body[data-theme="crimson"] .options-group {
 }
 body[data-theme="crimson"] .relic .icon,
 body[data-theme="crimson"] .choice .icon {
-  background: #2a0e0e;
+  background: #2a0e2a;
 }
 body[data-theme="crimson"] .option-select {
   background: #3a1818;
@@ -434,6 +435,11 @@ body[data-theme="crimson"] .toast {
   background: #1e0e0e;
   border-color: #4a1818;
 }
+
+/* ensure the total badge still reflects win/lose/push in crimson theme */
+body[data-theme="crimson"] .total.win { color: var(--success); }
+body[data-theme="crimson"] .total.lose { color: var(--danger); }
+body[data-theme="crimson"] .total.push { color: var(--accent); }
 
 @media (max-width: 980px){
   .table{ grid-template-columns: 1fr; align-items: stretch; }
