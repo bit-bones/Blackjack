@@ -6,6 +6,7 @@ export const $$ = (sel) => document.querySelectorAll(sel);
 
 // DOM Cache
 export const ui = {
+  minBetEl: $("#minBet"),
   chipsEl: $("#chips"),
   betEl: $("#bet"),
   streakEl: $("#streak"),
@@ -111,6 +112,7 @@ export function renderHands(revealDealer = false) {
 }
 
 export function updateTopbar() {
+  ui.minBetEl.textContent = state.minBet;
   ui.chipsEl.textContent = state.chips;
   ui.betEl.textContent = state.bet;
   ui.streakEl.textContent = `${state.streak} 🔥`;  // Added flame emoji for win streak
