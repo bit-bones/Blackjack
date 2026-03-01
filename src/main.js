@@ -20,7 +20,16 @@ const gameActions = {
   onSkipRelic: () => { state.stars = 0; updateTopbar(); ui.relicModal.classList.add("hidden"); nextRound(); },
   onResultContinue: () => {
     ui.resultModal.classList.add("hidden");
-    if (state.pendingGameOver) { ui.finalHighScoreEl.textContent = state.highScore; ui.gameOverModal.classList.remove("hidden"); return; }
+    if (state.pendingGameOver) {
+      ui.finalHighScoreEl.textContent = state.highScore;
+      if (state.chips <= 0) {
+        ui.gameOverMessageEl.textContent = "You ran out of chips.";
+      } else {
+        ui.gameOverMessageEl.textContent = `You can't afford the minimum bet of ${state.minBet} chips.`;
+      }
+      ui.gameOverModal.classList.remove("hidden");
+      return;
+    }
     const choices = getRelicChoicesIfReady();
     if (choices.length > 0) openRelicChoiceModal(choices);
     else nextRound();

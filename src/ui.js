@@ -38,6 +38,7 @@ export const ui = {
   resultContinueBtn: $("#resultContinueBtn"),
   resultGambleBtn: $("#resultGambleBtn"),
   gameOverModal: $("#gameOverModal"),
+  gameOverMessageEl: $("#gameOverMessage"),
   finalHighScoreEl: $("#finalHighScore"),
   restartBtn: $("#restartBtn"),
   menuModal: $("#menuModal"),
