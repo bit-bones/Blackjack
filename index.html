@@ -160,6 +160,7 @@
         <button id="menuNewRunBtn">New Run</button>
         <button id="menuRelicsBtn">Relics</button>
         <button id="menuHotkeysBtn">Hotkeys</button>
+        <button id="menuOptionsBtn">Options</button>
         <button id="menuResumeBtn" class="primary">Resume</button>
       </div>
     </div>
@@ -186,6 +187,23 @@
       <div class="modal-buttons">
         <button id="resetHotkeysBtn" class="ghost">Reset Defaults</button>
         <button id="closeHotkeysBtn" class="primary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Options Modal -->
+  <div id="optionsModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Options</h3>
+      <div class="options-group">
+        <label class="option-label" for="themeSelect">Theme</label>
+        <select id="themeSelect" class="option-select">
+          <option value="default">Midnight Felt</option>
+          <option value="crimson">Crimson Royale</option>
+        </select>
+      </div>
+      <div class="modal-buttons">
+        <button id="closeOptionsBtn" class="primary">Close</button>
       </div>
     </div>
   </div>
