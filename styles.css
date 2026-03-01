@@ -337,32 +337,33 @@ button.pulse{ animation: pulse .9s ease 2; }
 
 /* ── Crimson Royale Theme ── */
 body[data-theme="crimson"] {
-  --bg: #1a0a0a;
-  --felt: #5c1a1a;
-  --felt-dark: #3d0e0e;
-  --felt-light: #8b2a2a;
+  /* base variables adjusted for purple–burgundy palette */
+  --bg: #1a0a1a;              /* deep aubergine background */
+  --felt: #3d0e2a;            /* dark plum felt */
+  --felt-dark: #280a1e;
+  --felt-light: #5c1a5c;
   --ink: #fff0e8;
   --muted: #c4a898;
-  --accent: #ffd166;          /* warm gold accent */
-  --accent-2: #66e3ff;        /* cool blue secondary accent for contrast */
+  --accent: #ffd166;
+  --accent-2: #66e3ff;
   --danger: #ff6688;
   --success: #5cf2a5;
   --shadow: rgba(0,0,0,0.4);
   --card: #fff8f0;
   --card-edge: #e8d8cc;
-  --primary: #5c1a5c;         /* shift primary colors toward purple for variety */
+  --primary: #5c1a5c;
   --primary-2: #a85ca8;
 }
 body[data-theme="crimson"] {
-  background: radial-gradient(1200px 600px at 20% -20%, #2e0c0c, transparent), var(--bg);
+  background: radial-gradient(1200px 600px at 20% -20%, #2c0c2e, transparent), var(--bg);
 }
 body[data-theme="crimson"] .felt {
   background: radial-gradient(800px 180px at 50% -60px, var(--felt-light), transparent), radial-gradient(1000px 400px at 50% 100%, var(--felt-dark), var(--felt)), var(--felt);
-  border-color: #4a1515;
+  border-color: #3a083a; /* purple border instead of red */
 }
 body[data-theme="crimson"] .stat {
-  background: #1e0e0e;
-  border-color: #3a1818;
+  background: #1e0e1e;
+  border-color: #3a183a;
 }
 body[data-theme="crimson"] .role {
   color: #ffd6d6;
@@ -374,12 +375,12 @@ body[data-theme="crimson"] .total {
   border-color: rgba(255,255,255,0.08);
 }
 body[data-theme="crimson"] .deck-card {
-  background: repeating-linear-gradient(45deg,#4a1818,#4a1818 6px,#2e0a0a 6px,#2e0a0a 12px);
-  border-color: #1e0606;
+  background: repeating-linear-gradient(45deg,#3a083a,#3a083a 6px,#280a1e 6px,#280a1e 12px);
+  border-color: #19041d;
 }
 body[data-theme="crimson"] .card.face-down {
-  background: repeating-linear-gradient(45deg,#4a1818,#4a1818 6px,#2e0a0a 6px,#2e0a0a 12px);
-  border-color: #1e0606;
+  background: repeating-linear-gradient(45deg,#3a083a,#3a083a 6px,#280a1e 6px,#280a1e 12px);
+  border-color: #19041d;
 }
 body[data-theme="crimson"] .shoe-label {
   color: #ffb8b8;
@@ -390,12 +391,12 @@ body[data-theme="crimson"] .relics {
   border-color: #3a1818;
 }
 body[data-theme="crimson"] button {
-  /* subtle purple tint instead of straight red */
+  /* switch buttons to deep purple rather than red */
   background: #2a0e2a;
   border-color: #4a183a;
 }
 body[data-theme="crimson"] button:hover {
-  border-color: #803080;
+  border-color: #803080; /* magenta hover for variety */
 }
 body[data-theme="crimson"] button.primary {
   background: linear-gradient(180deg, var(--primary-2), var(--primary));
@@ -424,11 +425,11 @@ body[data-theme="crimson"] .choice .icon {
   background: #2a0e2a;
 }
 body[data-theme="crimson"] .option-select {
-  background: #3a1818;
-  border-color: #803030;
+  background: #3a183a;
+  border-color: #803080;
 }
 body[data-theme="crimson"] .hotkey-key {
-  background: #3a1818;
+  background: #3a183a;
   color: var(--accent-2);
 }
 body[data-theme="crimson"] .toast {
