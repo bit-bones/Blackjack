@@ -335,7 +335,7 @@ button.pulse{ animation: pulse .9s ease 2; }
 .option-select:hover { border-color: var(--primary-2); }
 .option-select:focus { border-color: var(--accent-2); box-shadow: 0 0 0 2px rgba(102,227,255,0.15); }
 
-/* ── Crimson Royale Theme ── */
+/* ── Adjusted Crimson Royale Theme ── */
 body[data-theme="crimson"] {
   --bg: #1a0a0a;
   --felt: #5c1a1a;
@@ -352,20 +352,22 @@ body[data-theme="crimson"] {
   --card-edge: #e8d8cc;
   --primary: #a82040;
   --primary-2: #e6667a;
+  --highlight: #ffcccb; /* Added a highlight color */
+  --secondary: #6b3a3a; /* Added a secondary color */
 }
 body[data-theme="crimson"] {
   background: radial-gradient(1200px 600px at 20% -20%, #2e0c0c, transparent), var(--bg);
 }
 body[data-theme="crimson"] .felt {
   background: radial-gradient(800px 180px at 50% -60px, var(--felt-light), transparent), radial-gradient(1000px 400px at 50% 100%, var(--felt-dark), var(--felt)), var(--felt);
-  border-color: #4a1515;
+  border-color: var(--secondary);
 }
 body[data-theme="crimson"] .stat {
   background: #1e0e0e;
-  border-color: #3a1818;
+  border-color: var(--secondary);
 }
 body[data-theme="crimson"] .role {
-  color: #ffd6d6;
+  color: var(--highlight);
 }
 body[data-theme="crimson"] .total {
   color: #ffe8e0;
@@ -373,24 +375,24 @@ body[data-theme="crimson"] .total {
   border-color: rgba(255,255,255,0.08);
 }
 body[data-theme="crimson"] .deck-card {
-  background: repeating-linear-gradient(45deg,#4a1818,#4a1818 6px,#2e0a0a 6px,#2e0a0a 12px);
+  background: repeating-linear-gradient(45deg,var(--secondary),var(--secondary) 6px,#2e0a0a 6px,#2e0a0a 12px);
   border-color: #1e0606;
 }
 body[data-theme="crimson"] .card.face-down {
-  background: repeating-linear-gradient(45deg,#4a1818,#4a1818 6px,#2e0a0a 6px,#2e0a0a 12px);
+  background: repeating-linear-gradient(45deg,var(--secondary),var(--secondary) 6px,#2e0a0a 6px,#2e0a0a 12px);
   border-color: #1e0606;
 }
 body[data-theme="crimson"] .shoe-label {
-  color: #ffb8b8;
+  color: var(--highlight);
 }
 body[data-theme="crimson"] .betting,
 body[data-theme="crimson"] .relics {
   background: #1a0a0a;
-  border-color: #3a1818;
+  border-color: var(--secondary);
 }
 body[data-theme="crimson"] button {
   background: #2a0e0e;
-  border-color: #4a1818;
+  border-color: var(--secondary);
 }
 body[data-theme="crimson"] button:hover {
   border-color: #803030;
@@ -400,14 +402,13 @@ body[data-theme="crimson"] button.primary {
 }
 body[data-theme="crimson"] .pill {
   background: #2a0e0e;
-  border-color: #4a1818;
+  border-color: var(--secondary);
 }
 body[data-theme="crimson"] .pill:hover {
   border-color: #803030;
 }
 body[data-theme="crimson"] .modal-content {
-  background: #1a0a0a;
-  border-color: #3a1818;
+  /* Additional adjustments can be added here */
 }
 body[data-theme="crimson"] .relic,
 body[data-theme="crimson"] .choice,

@@ -146,6 +146,10 @@ export function setTotalsStyles(outcome) {
     ui.playerTotalEl.classList.add("push");
     ui.dealerTotalEl.classList.add("push");
   }
+
+  // Ensure the "Total: x" indicator updates dynamically
+  ui.playerTotalEl.style.color = getComputedStyle(ui.playerTotalEl).color;
+  ui.dealerTotalEl.style.color = getComputedStyle(ui.dealerTotalEl).color;
 }
 
 export function showHint(msg) {
