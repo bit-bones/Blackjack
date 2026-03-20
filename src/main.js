@@ -4,20 +4,7 @@ import { onDeal, onHit, onStand, nextRound, onGamblePayout, pickRelic, getRelicC
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
 
-function applyTheme(theme) {
-  document.body.setAttribute("data-theme", theme === "default" ? "" : theme);
-  if (theme === "default") document.body.removeAttribute("data-theme");
-  localStorage.setItem("bjrl-theme", theme);
-}
-
-function loadSavedTheme() {
-  const saved = localStorage.getItem("bjrl-theme") || "default";
-  ui.themeSelect.value = saved;
-  applyTheme(saved);
-}
-
 function init() {
-  loadSavedTheme();
   state.minBet = 5;
   updateTopbar();
   renderRelicsList();
@@ -121,9 +108,6 @@ ui.skipRelicBtn.addEventListener("click", gameActions.onSkipRelic);
 ui.menuNewRunBtn.addEventListener("click", gameActions.onMenuNewRun);
 ui.menuRelicsBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); ui.relicListModal.classList.remove("hidden"); renderAllRelicsList(); });
 ui.menuHotkeysBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); renderHotkeys(); ui.hotkeysModal.classList.remove("hidden"); });
-ui.menuOptionsBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); ui.optionsModal.classList.remove("hidden"); });
-ui.closeOptionsBtn.addEventListener("click", () => ui.optionsModal.classList.add("hidden"));
-ui.themeSelect.addEventListener("change", () => { applyTheme(ui.themeSelect.value); });
 ui.menuResumeBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); });
 ui.closeRelicListBtn.addEventListener("click", () => ui.relicListModal.classList.add("hidden"));
 ui.closeHotkeysBtn.addEventListener("click", () => ui.hotkeysModal.classList.add("hidden"));

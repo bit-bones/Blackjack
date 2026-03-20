@@ -53,10 +53,6 @@ export const ui = {
   hotkeysListEl: $("#hotkeysList"),
   closeHotkeysBtn: $("#closeHotkeysBtn"),
   resetHotkeysBtn: $("#resetHotkeysBtn"),
-  optionsModal: $("#optionsModal"),
-  menuOptionsBtn: $("#menuOptionsBtn"),
-  themeSelect: $("#themeSelect"),
-  closeOptionsBtn: $("#closeOptionsBtn"),
   toastEl: $("#toast")
 };
 
