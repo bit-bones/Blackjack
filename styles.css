@@ -142,13 +142,7 @@ button.primary{ background: linear-gradient(180deg, var(--primary-2), var(--prim
 button.ghost{ background: transparent; border-color: #2a3f77; }
 button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 
-/* Subtle pulse to draw attention when next hand is ready (kept for betting) */
-@keyframes pulse{
-  0%{ transform: scale(1); }
-  50%{ transform: scale(1.035); }
-  100%{ transform: scale(1); }
-}
-button.pulse{ animation: pulse .9s ease 2; }
+
 
 .tips{ color: #c4d9ff; opacity: .9; font-size: 14px }
 

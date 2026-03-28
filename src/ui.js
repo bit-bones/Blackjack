@@ -170,8 +170,7 @@ export function setPhaseControls() {
     ui.dealBtn.disabled = state.bet < state.minBet || state.bet > state.chips;
     ui.betRange.disabled = false;
     $$(".pill").forEach(b => b.disabled = false);
-    ui.dealBtn.classList.add("pulse");
-    setTimeout(() => ui.dealBtn.classList.remove("pulse"), 1200);
+
   } else if (state.phase === "player") {
     ui.dealBtn.disabled = true;
     ui.betRange.disabled = true;
