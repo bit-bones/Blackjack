@@ -99,7 +99,6 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
   border: 2px solid #2a3f77;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   cursor: pointer;
-  margin-top: -8px;
 }
 #betRange::-moz-range-thumb{
   width: 22px;
@@ -410,36 +409,36 @@ button.pulse{ animation: pulse .9s ease 2; }
     overflow: hidden;
   }
 
-  /* -- Header: logo + stats row -- */
+  /* -- Header: compact single row -- */
   .topbar{
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    grid-template-columns: auto 1fr;
+    gap: 8px;
     margin-bottom: 6px;
     flex-shrink: 0;
   }
-  .branding{ display: flex; gap: 0; }
-  .title{ display: none; }
-  .logo{ width: 32px; height: 32px; font-size: 16px; border-radius: 8px; flex-shrink: 0; }
+  .branding{ gap: 8px; }
+  .title h1{ font-size: 15px; }
+  .title p{ display: none; }
+  .logo{ width: 32px; height: 32px; font-size: 16px; border-radius: 8px; }
 
   .status{
     display: flex;
     flex-wrap: nowrap;
-    gap: 3px;
-    flex: 1;
+    gap: 4px;
+    overflow-x: auto;
     justify-content: flex-end;
     scrollbar-width: none;
   }
   .status::-webkit-scrollbar{ display: none; }
   .stat{
-    flex: 1 1 0;
     min-width: 0;
-    padding: 4px 3px;
+    padding: 4px 6px;
     text-align: center;
     border-radius: 8px;
+    flex-shrink: 0;
   }
-  .stat-label{ font-size: 8px; }
-  .stat-value{ font-size: 11px; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .stat-label{ font-size: 9px; }
+  .stat-value{ font-size: 12px; margin-top: 1px; }
 
   /* -- Table: fills remaining space -- */
   .table{
@@ -450,17 +449,15 @@ button.pulse{ animation: pulse .9s ease 2; }
     gap: 6px;
   }
 
-  /* -- Felt: fixed height so it never resizes -- */
+  /* -- Felt: flexible height -- */
   .felt{
-    flex: 0 0 auto;
-    height: calc(100vh - 230px);
-    height: calc(100dvh - 230px);
+    flex: 1;
+    min-height: 0;
     padding: 10px;
     border-radius: 12px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    overflow: hidden;
   }
   .dealer-area{ padding: 4px 4px 6px; margin-top: 2px; }
   .player-area{
@@ -485,12 +482,11 @@ button.pulse{ animation: pulse .9s ease 2; }
   /* -- Relics: hidden on mobile (accessible via menu) -- */
   .relics{ display: none; }
 
-  /* -- Controls: fixed-height at bottom so felt never resizes -- */
+  /* -- Controls: fixed at bottom, no scroll -- */
   .controls{
     flex-shrink: 0;
     gap: 6px;
     margin-top: 0;
-    min-height: 170px;
   }
 
   /* Betting section */
@@ -510,46 +506,10 @@ button.pulse{ animation: pulse .9s ease 2; }
 
   #betRange{
     width: 100%;
-    height: 6px;
-    -webkit-appearance: none;
-    appearance: none;
-    background: #1c2a4d;
-    border-radius: 3px;
-    border: none;
-    outline: none;
-    padding: 14px 0;
-    box-sizing: content-box;
+    height: 32px;
   }
-  #betRange::-webkit-slider-thumb{
-    -webkit-appearance: none;
-    appearance: none;
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: linear-gradient(180deg, var(--primary-2), var(--primary));
-    border: 2px solid #2a3f77;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-    margin-top: -11px;
-  }
-  #betRange::-webkit-slider-runnable-track{
-    height: 6px;
-    background: #1c2a4d;
-    border-radius: 3px;
-  }
-  #betRange::-moz-range-thumb{
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: linear-gradient(180deg, var(--primary-2), var(--primary));
-    border: 2px solid #2a3f77;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-  }
-  #betRange::-moz-range-track{
-    height: 6px;
-    background: #1c2a4d;
-    border-radius: 3px;
-    border: none;
-  }
+  #betRange::-webkit-slider-thumb{ width: 28px; height: 28px; }
+  #betRange::-moz-range-thumb{ width: 28px; height: 28px; }
 
   .bet-quick{
     display: grid;
@@ -565,25 +525,22 @@ button.pulse{ animation: pulse .9s ease 2; }
   }
 
   /* ── Phase-aware mobile layout ── */
-  /* Betting phase: show betting + deal, hide play actions + peek */
+  /* Betting phase: show betting + deal, hide play actions */
   .controls.phase-betting .betting{ display: grid; }
-  .controls.phase-betting .actions{ display: grid; }
-  .controls.phase-betting .actions #dealBtn{ display: block !important; }
+  .controls.phase-betting .actions #dealBtn{ display: block; }
   .controls.phase-betting .actions #hitBtn,
   .controls.phase-betting .actions #standBtn,
   .controls.phase-betting .actions #doubleBtn,
   .controls.phase-betting .actions #surrenderBtn,
   .controls.phase-betting .actions #peekBtn{ display: none !important; }
 
-  /* Playing phase: hide betting + deal, show play actions */
+  /* Playing phase: hide betting, show play actions */
   .controls.phase-playing .betting{ display: none; }
   .controls.phase-playing .actions #dealBtn{ display: none; }
   .controls.phase-playing .actions #hitBtn,
   .controls.phase-playing .actions #standBtn,
   .controls.phase-playing .actions #doubleBtn,
   .controls.phase-playing .actions #surrenderBtn{ display: block; }
-  /* Peek only visible during play phase (JS controls inline style) */
-  .controls.phase-playing .actions #peekBtn{ grid-column: 1 / -1; }
 
   /* Action buttons: 2-col grid, big touch targets */
   .actions{
@@ -603,6 +560,9 @@ button.pulse{ animation: pulse .9s ease 2; }
     grid-column: 1 / -1;
     font-size: 17px;
     padding: 14px 8px;
+  }
+  .actions #peekBtn{
+    grid-column: 1 / -1;
   }
 
   .tips{ font-size: 12px; text-align: center; padding: 2px 0; }
