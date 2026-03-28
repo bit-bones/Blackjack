@@ -106,10 +106,13 @@ ui.resultGambleBtn.addEventListener("click", onGamblePayout);
 ui.restartBtn.addEventListener("click", gameActions.onMenuNewRun);
 ui.skipRelicBtn.addEventListener("click", gameActions.onSkipRelic);
 ui.menuNewRunBtn.addEventListener("click", gameActions.onMenuNewRun);
-ui.menuRelicsBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); ui.relicListModal.classList.remove("hidden"); renderAllRelicsList(); });
+ui.menuRelicsBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); switchRelicTab("current"); ui.relicListModal.classList.remove("hidden"); });
 ui.menuHotkeysBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); renderHotkeys(); ui.hotkeysModal.classList.remove("hidden"); });
 ui.menuResumeBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); });
+document.querySelector(".logo").addEventListener("click", () => { ui.menuModal.classList.remove("hidden"); });
 ui.closeRelicListBtn.addEventListener("click", () => ui.relicListModal.classList.add("hidden"));
+ui.relicTabCurrent.addEventListener("click", () => switchRelicTab("current"));
+ui.relicTabAll.addEventListener("click", () => switchRelicTab("all"));
 ui.closeHotkeysBtn.addEventListener("click", () => ui.hotkeysModal.classList.add("hidden"));
 ui.resetHotkeysBtn.addEventListener("click", resetHotkeysToDefault);
 ui.betRange.addEventListener("input", () => { state.bet = Number(ui.betRange.value); ui.betEl.textContent = state.bet; setPhaseControls(); });
@@ -130,6 +133,40 @@ function renderAllRelicsList() {
     });
     ui.allRelicsListEl.appendChild(el);
   });
+}
+
+function renderCurrentRelicsList() {
+  ui.currentRelicsListEl.innerHTML = "";
+  if (state.relics.length === 0) {
+    const empty = document.createElement("div");
+    empty.style.cssText = "color: var(--muted); padding: 16px 0; text-align: center;";
+    empty.textContent = "No relics collected yet.";
+    ui.currentRelicsListEl.appendChild(empty);
+    return;
+  }
+  state.relics.forEach(rel => {
+    const el = document.createElement("div"); el.className = "relic";
+    el.innerHTML = `<div class="icon">${rel.icon}</div><div><div class="name">${rel.name}</div><div class="desc">${rel.desc}</div></div>`;
+    ui.currentRelicsListEl.appendChild(el);
+  });
+}
+
+function switchRelicTab(tab) {
+  if (tab === "current") {
+    ui.relicTabCurrent.classList.add("active");
+    ui.relicTabAll.classList.remove("active");
+    ui.currentRelicsListEl.style.display = "";
+    ui.allRelicsListEl.style.display = "none";
+    ui.relicListDescEl.textContent = "Relics you've collected this run.";
+    renderCurrentRelicsList();
+  } else {
+    ui.relicTabAll.classList.add("active");
+    ui.relicTabCurrent.classList.remove("active");
+    ui.allRelicsListEl.style.display = "";
+    ui.currentRelicsListEl.style.display = "none";
+    ui.relicListDescEl.textContent = "Activate relics for testing (marks run as cheated).";
+    renderAllRelicsList();
+  }
 }
 
 setupKeyboardListeners(gameActions);

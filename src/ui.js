@@ -48,6 +48,10 @@ export const ui = {
   menuResumeBtn: $("#menuResumeBtn"),
   relicListModal: $("#relicListModal"),
   allRelicsListEl: $("#allRelicsList"),
+  currentRelicsListEl: $("#currentRelicsList"),
+  relicListDescEl: $("#relicListDesc"),
+  relicTabCurrent: $("#relicTabCurrent"),
+  relicTabAll: $("#relicTabAll"),
   closeRelicListBtn: $("#closeRelicListBtn"),
   hotkeysModal: $("#hotkeysModal"),
   hotkeysListEl: $("#hotkeysList"),
@@ -61,9 +65,7 @@ export function createCardEl(card, faceDown = false) {
   el.className = "card deal-in";
 
   if (faceDown) {
-    // keep the back-of-card appearance — no inner children needed
     el.classList.add("face-down");
-    return el;
   }
 
   const red = (card.suit === "♥" || card.suit === "♦");

@@ -168,9 +168,14 @@
   <!-- All Relics List Modal (Cheat/Test) -->
   <div id="relicListModal" class="modal hidden">
     <div class="modal-content">
-      <h3>All Relics</h3>
-      <p>Activate relics for testing (marks run as cheated).</p>
-      <div id="allRelicsList" class="relics-list scrollable"></div>
+      <h3>Relics</h3>
+      <div class="relic-tabs">
+        <button id="relicTabCurrent" class="relic-tab active">Current</button>
+        <button id="relicTabAll" class="relic-tab">All</button>
+      </div>
+      <p id="relicListDesc">Relics you've collected this run.</p>
+      <div id="currentRelicsList" class="relics-list scrollable"></div>
+      <div id="allRelicsList" class="relics-list scrollable" style="display:none"></div>
       <button id="closeRelicListBtn">Close</button>
     </div>
   </div>

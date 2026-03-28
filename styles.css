@@ -24,7 +24,8 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
   display: grid; grid-template-columns: 1fr auto; gap: 16px; align-items: center; margin-bottom: 10px;
 }
 .branding{ display:flex; gap:12px; align-items:center}
-.logo{ width:44px; height:44px; display:grid; place-items:center; background: linear-gradient(135deg, var(--primary), var(--primary-2)); border-radius:12px; font-size:22px; box-shadow: 0 10px 20px var(--shadow)}
+.logo{ width:44px; height:44px; display:grid; place-items:center; background: linear-gradient(135deg, var(--primary), var(--primary-2)); border-radius:12px; font-size:22px; box-shadow: 0 10px 20px var(--shadow); cursor: pointer; transition: transform .15s ease; }
+.logo:hover{ transform: scale(1.08); }
 .title h1{ font-family: Montserrat, system-ui; font-size: 22px; margin:0; letter-spacing:0.4px}
 .title p{ margin:0; color: var(--muted); font-size: 13px }
 
@@ -148,6 +149,9 @@ button.pulse{ animation: pulse .9s ease 2; }
   background: repeating-linear-gradient(45deg,#1c2948,#1c2948 6px,#142037 6px,#142037 12px);
   border-color: #0e172a;
 }
+.card.face-down .rank,
+.card.face-down .suit,
+.card.face-down .pip{ display: none; }
 .card.glow{ box-shadow: 0 0 0 2px var(--accent), 0 18px 22px rgba(0,0,0,0.4) }
 
 .card.deal-in{
@@ -225,6 +229,34 @@ button.pulse{ animation: pulse .9s ease 2; }
 #closeRelicListBtn {
   margin-top: 12px; 
   display: inline-block;
+}
+
+.relic-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 12px;
+  border-bottom: 2px solid #1a2746;
+}
+.relic-tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--muted);
+  padding: 8px 18px;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  margin-bottom: -2px;
+  border-radius: 0;
+  transition: color .15s, border-color .15s;
+}
+.relic-tab:hover {
+  color: var(--ink);
+  transform: none;
+}
+.relic-tab.active {
+  color: var(--accent-2);
+  border-bottom-color: var(--accent-2);
 }
 
 /* Hotkeys Styles */
