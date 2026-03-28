@@ -157,6 +157,13 @@ export function toast(msg) {
 }
 
 export function setPhaseControls() {
+  // Toggle phase class on controls for mobile layout swapping
+  const controlsEl = document.querySelector('.controls');
+  if (controlsEl) {
+    controlsEl.classList.remove('phase-betting', 'phase-playing');
+    controlsEl.classList.add(state.phase === 'betting' ? 'phase-betting' : 'phase-playing');
+  }
+
   [ui.hitBtn, ui.standBtn, ui.doubleBtn, ui.surrenderBtn, ui.peekBtn].forEach(b => b.disabled = true);
 
   if (state.phase === "betting") {
