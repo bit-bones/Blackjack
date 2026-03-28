@@ -406,7 +406,7 @@ button.pulse{ animation: pulse .9s ease 2; }
     height: 100dvh;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+    overflow: visible;
   }
 
   /* -- Header: compact single row -- */
@@ -447,13 +447,12 @@ button.pulse{ animation: pulse .9s ease 2; }
     flex: 1;
     min-height: 0;
     gap: 6px;
+    overflow: visible;
   }
 
   /* -- Felt: fixed height so it never resizes between phases -- */
   .felt{
-    flex: 0 0 auto;
-    height: calc(100vh - 330px);
-    height: calc(100dvh - 330px);
+    flex: 0 0 45%;
     padding: 10px;
     border-radius: 12px;
     display: flex;
