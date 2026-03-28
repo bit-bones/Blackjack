@@ -452,8 +452,8 @@ button.pulse{ animation: pulse .9s ease 2; }
   /* -- Felt: fixed height so it never resizes between phases -- */
   .felt{
     flex: 0 0 auto;
-    height: calc(100vh - 260px);
-    height: calc(100dvh - 260px);
+    height: calc(100vh - 330px);
+    height: calc(100dvh - 330px);
     padding: 10px;
     border-radius: 12px;
     display: flex;
