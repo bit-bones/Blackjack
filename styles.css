@@ -99,6 +99,7 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
   border: 2px solid #2a3f77;
   box-shadow: 0 2px 8px rgba(0,0,0,0.4);
   cursor: pointer;
+  margin-top: -8px;
 }
 #betRange::-moz-range-thumb{
   width: 22px;
@@ -409,24 +410,22 @@ button.pulse{ animation: pulse .9s ease 2; }
     overflow: hidden;
   }
 
-  /* -- Header: compact single row -- */
+  /* -- Header: stats only, branding hidden -- */
   .topbar{
-    grid-template-columns: auto 1fr;
-    gap: 8px;
+    display: flex;
+    gap: 4px;
     margin-bottom: 6px;
     flex-shrink: 0;
   }
-  .branding{ gap: 8px; }
-  .title h1{ font-size: 15px; }
-  .title p{ display: none; }
-  .logo{ width: 32px; height: 32px; font-size: 16px; border-radius: 8px; }
+  .branding{ display: none; }
 
   .status{
     display: flex;
     flex-wrap: nowrap;
     gap: 4px;
     overflow-x: auto;
-    justify-content: flex-end;
+    justify-content: center;
+    width: 100%;
     scrollbar-width: none;
   }
   .status::-webkit-scrollbar{ display: none; }
@@ -482,11 +481,12 @@ button.pulse{ animation: pulse .9s ease 2; }
   /* -- Relics: hidden on mobile (accessible via menu) -- */
   .relics{ display: none; }
 
-  /* -- Controls: fixed at bottom, no scroll -- */
+  /* -- Controls: fixed-height at bottom so felt never resizes -- */
   .controls{
     flex-shrink: 0;
     gap: 6px;
     margin-top: 0;
+    min-height: 170px;
   }
 
   /* Betting section */
@@ -525,22 +525,24 @@ button.pulse{ animation: pulse .9s ease 2; }
   }
 
   /* ── Phase-aware mobile layout ── */
-  /* Betting phase: show betting + deal, hide play actions */
+  /* Betting phase: show betting + deal, hide play actions + peek */
   .controls.phase-betting .betting{ display: grid; }
   .controls.phase-betting .actions #dealBtn{ display: block; }
   .controls.phase-betting .actions #hitBtn,
   .controls.phase-betting .actions #standBtn,
   .controls.phase-betting .actions #doubleBtn,
   .controls.phase-betting .actions #surrenderBtn,
-  .controls.phase-betting .actions #peekBtn{ display: none; }
+  .controls.phase-betting .actions #peekBtn{ display: none !important; }
 
-  /* Playing phase: hide betting, show play actions */
+  /* Playing phase: hide betting + deal, show play actions */
   .controls.phase-playing .betting{ display: none; }
   .controls.phase-playing .actions #dealBtn{ display: none; }
   .controls.phase-playing .actions #hitBtn,
   .controls.phase-playing .actions #standBtn,
   .controls.phase-playing .actions #doubleBtn,
   .controls.phase-playing .actions #surrenderBtn{ display: block; }
+  /* Peek only visible during play phase (JS controls inline style) */
+  .controls.phase-playing .actions #peekBtn{ grid-column: 1 / -1; }
 
   /* Action buttons: 2-col grid, big touch targets */
   .actions{
@@ -560,9 +562,6 @@ button.pulse{ animation: pulse .9s ease 2; }
     grid-column: 1 / -1;
     font-size: 17px;
     padding: 14px 8px;
-  }
-  .actions #peekBtn{
-    grid-column: 1 / -1;
   }
 
   .tips{ font-size: 12px; text-align: center; padding: 2px 0; }
