@@ -78,6 +78,48 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
 }
 .betting label{ color: var(--muted); font-size: 12px }
 #betRange{ width: 100% }
+
+/* Custom range slider styling */
+#betRange{
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  background: #1c2a4d;
+  border-radius: 3px;
+  outline: none;
+  border: none;
+}
+#betRange::-webkit-slider-thumb{
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--primary-2), var(--primary));
+  border: 2px solid #2a3f77;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+#betRange::-moz-range-thumb{
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--primary-2), var(--primary));
+  border: 2px solid #2a3f77;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  cursor: pointer;
+}
+#betRange::-webkit-slider-runnable-track{
+  height: 6px;
+  background: #1c2a4d;
+  border-radius: 3px;
+}
+#betRange::-moz-range-track{
+  height: 6px;
+  background: #1c2a4d;
+  border-radius: 3px;
+  border: none;
+}
 .bet-display{
   display:flex; align-items:center; gap: 8px;
   color: var(--ink);
@@ -350,67 +392,108 @@ button.pulse{ animation: pulse .9s ease 2; }
 
 /* Mobile breakpoint */
 @media (max-width: 600px){
-  html, body{ -webkit-tap-highlight-color: transparent; overscroll-behavior: none; }
-
-  #app{ padding: 8px; }
-
-  /* -- Header -- */
-  .topbar{
-    grid-template-columns: 1fr;
-    gap: 10px;
+  html, body{
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    overflow: hidden;
+    height: 100vh;
+    height: 100dvh;
   }
-  .branding{ justify-content: center; }
-  .title h1{ font-size: 18px; text-align: center; }
-  .title p{ font-size: 11px; text-align: center; }
-  .logo{ width: 38px; height: 38px; font-size: 18px; border-radius: 10px; }
+
+  #app{
+    padding: 6px 8px;
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  /* -- Header: compact single row -- */
+  .topbar{
+    grid-template-columns: auto 1fr;
+    gap: 8px;
+    margin-bottom: 6px;
+    flex-shrink: 0;
+  }
+  .branding{ gap: 8px; }
+  .title h1{ font-size: 15px; }
+  .title p{ display: none; }
+  .logo{ width: 32px; height: 32px; font-size: 16px; border-radius: 8px; }
 
   .status{
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 6px;
-    justify-content: center;
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+    justify-content: flex-end;
+    scrollbar-width: none;
   }
+  .status::-webkit-scrollbar{ display: none; }
   .stat{
     min-width: 0;
-    padding: 6px 8px;
+    padding: 4px 6px;
     text-align: center;
-    border-radius: 10px;
+    border-radius: 8px;
+    flex-shrink: 0;
   }
-  .stat-label{ font-size: 10px; }
-  .stat-value{ font-size: 14px; }
-  /* span 2 cols for the remaining 2 stats on second row */
-  .stat:nth-child(4){ grid-column: 1 / 2; }
-  .stat:nth-child(5){ grid-column: 2 / 4; }
+  .stat-label{ font-size: 9px; }
+  .stat-value{ font-size: 12px; margin-top: 1px; }
 
-  /* -- Felt / Table -- */
+  /* -- Table: fills remaining space -- */
+  .table{
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    gap: 6px;
+  }
+
+  /* -- Felt: flexible height -- */
   .felt{
-    padding: 12px;
-    border-radius: 14px;
-    min-height: 380px;
+    flex: 1;
+    min-height: 0;
+    padding: 10px;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
   }
-  .dealer-area, .player-area{ padding: 6px 4px 10px; }
-  .player-area{ left: 12px; right: 12px; bottom: 12px; }
+  .dealer-area{ padding: 4px 4px 6px; margin-top: 2px; }
+  .player-area{
+    position: static;
+    padding: 4px 4px 6px;
+  }
 
-  .hand{ gap: 8px; min-height: 96px; }
-  .hand-row{ gap: 8px; }
-  .card{ width: 58px; height: 82px; border-radius: 8px; }
-  .card .rank{ top: 4px; left: 5px; font-size: 13px; }
-  .card .suit{ right: 5px; bottom: 4px; font-size: 11px; }
-  .card .pip{ font-size: 22px; }
-  .total{ padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+  .hand{ gap: 6px; min-height: 72px; }
+  .hand-row{ gap: 6px; }
+  .card{ width: 52px; height: 74px; border-radius: 7px; }
+  .card .rank{ top: 3px; left: 4px; font-size: 12px; }
+  .card .suit{ right: 4px; bottom: 3px; font-size: 10px; }
+  .card .pip{ font-size: 20px; }
+  .total{ padding: 4px 8px; font-size: 12px; border-radius: 7px; }
+  .role{ font-size: 10px; }
 
-  /* Shoe: tucked tighter */
-  .shoe{ right: 10px; }
-  .deck-stack{ width: 52px; height: 70px; }
-  .shoe-label{ font-size: 10px; }
+  /* Shoe: tight & small */
+  .shoe{ position: static; transform: none; align-self: center; flex-shrink: 0; padding: 4px 0; }
+  .deck-stack{ width: 44px; height: 58px; }
+  .shoe-label{ font-size: 9px; }
 
-  /* -- Controls -- */
-  .controls{ gap: 8px; }
+  /* -- Relics: hidden on mobile (accessible via menu) -- */
+  .relics{ display: none; }
 
+  /* -- Controls: fixed at bottom, no scroll -- */
+  .controls{
+    flex-shrink: 0;
+    gap: 6px;
+    margin-top: 0;
+  }
+
+  /* Betting section */
   .betting{
     grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 10px;
+    gap: 6px;
+    padding: 8px 10px;
     border-radius: 10px;
   }
   .betting > div:first-child{
@@ -418,101 +501,103 @@ button.pulse{ animation: pulse .9s ease 2; }
     align-items: center;
     justify-content: space-between;
   }
-  .bet-label{ font-size: 12px; }
-  .bet-display{ font-size: 18px; font-weight: 700; }
+  .bet-label{ font-size: 11px; }
+  .bet-display{ font-size: 17px; font-weight: 700; }
+
   #betRange{
     width: 100%;
-    height: 36px;          /* taller touch target for the slider */
-    -webkit-appearance: none;
-    appearance: none;
+    height: 32px;
   }
+  #betRange::-webkit-slider-thumb{ width: 28px; height: 28px; }
+  #betRange::-moz-range-thumb{ width: 28px; height: 28px; }
+
   .bet-quick{
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 6px;
   }
   .pill{
-    padding: 10px 0;
+    padding: 8px 0;
     text-align: center;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
-    border-radius: 10px;
+    border-radius: 8px;
   }
 
-  /* Action buttons: large touch targets in a 2-col grid */
+  /* ── Phase-aware mobile layout ── */
+  /* Betting phase: show betting + deal, hide play actions */
+  .controls.phase-betting .betting{ display: grid; }
+  .controls.phase-betting .actions #dealBtn{ display: block; }
+  .controls.phase-betting .actions #hitBtn,
+  .controls.phase-betting .actions #standBtn,
+  .controls.phase-betting .actions #doubleBtn,
+  .controls.phase-betting .actions #surrenderBtn,
+  .controls.phase-betting .actions #peekBtn{ display: none; }
+
+  /* Playing phase: hide betting, show play actions */
+  .controls.phase-playing .betting{ display: none; }
+  .controls.phase-playing .actions #dealBtn{ display: none; }
+  .controls.phase-playing .actions #hitBtn,
+  .controls.phase-playing .actions #standBtn,
+  .controls.phase-playing .actions #doubleBtn,
+  .controls.phase-playing .actions #surrenderBtn{ display: block; }
+
+  /* Action buttons: 2-col grid, big touch targets */
   .actions{
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: 6px;
   }
   .actions button{
     width: 100%;
-    padding: 14px 10px;
-    font-size: 16px;
+    padding: 12px 8px;
+    font-size: 15px;
     border-radius: 10px;
-    min-height: 48px;
+    min-height: 46px;
     touch-action: manipulation;
   }
-  /* Deal spans full width */
   .actions #dealBtn{
     grid-column: 1 / -1;
-    font-size: 18px;
-    padding: 16px 10px;
+    font-size: 17px;
+    padding: 14px 8px;
   }
-  /* Peek button full width */
   .actions #peekBtn{
     grid-column: 1 / -1;
   }
 
-  .tips{ font-size: 13px; text-align: center; }
-
-  /* -- Relics sidebar stacked -- */
-  .relics{
-    padding: 10px;
-    border-radius: 12px;
-  }
-  .relics h2{ font-size: 14px; }
-  .relic{
-    grid-template-columns: 32px 1fr auto;
-    padding: 6px;
-    border-radius: 10px;
-  }
-  .relic .icon{ width: 32px; height: 32px; font-size: 16px; border-radius: 6px; }
-  .relic .name{ font-size: 13px; }
-  .relic .desc{ font-size: 12px; }
+  .tips{ font-size: 12px; text-align: center; padding: 2px 0; }
 
   /* -- Modals -- */
   .modal-content{
     width: 96vw;
-    max-height: 90vh;
+    max-height: 88vh;
     overflow-y: auto;
     padding: 14px;
     border-radius: 14px;
   }
-  .modal-content h3{ font-size: 18px; }
+  .modal-content h3{ font-size: 17px; }
   .modal-buttons{
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
   .modal-buttons button{
     width: 100%;
-    padding: 14px;
-    font-size: 16px;
-    min-height: 48px;
+    padding: 13px;
+    font-size: 15px;
+    min-height: 46px;
   }
 
   .relic-choices{
     grid-template-columns: 1fr;
-    gap: 10px;
+    gap: 8px;
   }
   .choice{
-    padding: 14px 12px;
+    padding: 12px 10px;
     grid-template-columns: 36px 1fr;
   }
 
-  /* Hotkey rows */
   .hotkey-row{ padding: 8px 10px; }
-  .hotkey-key{ padding: 8px 14px; min-height: 40px; display: grid; place-items: center; }
+  .hotkey-key{ padding: 8px 14px; min-height: 38px; display: grid; place-items: center; }
 
   /* -- Toast -- */
   .toast{
@@ -520,20 +605,21 @@ button.pulse{ animation: pulse .9s ease 2; }
     transform: translateX(0) translateY(20px);
     border-radius: 10px;
     text-align: center;
-    font-size: 14px;
+    font-size: 13px;
   }
   .toast.show{ transform: translateX(0) translateY(0); }
 }
 
 /* Very small screens (iPhone SE, etc.) */
 @media (max-width: 380px){
-  .card{ width: 48px; height: 70px; }
-  .card .rank{ font-size: 11px; top: 3px; left: 4px; }
-  .card .pip{ font-size: 18px; }
-  .deck-stack{ width: 44px; height: 60px; }
-  .felt{ min-height: 340px; }
-  .hand{ min-height: 80px; }
-  .status{ grid-template-columns: repeat(3, 1fr); }
+  .card{ width: 44px; height: 64px; }
+  .card .rank{ font-size: 10px; top: 2px; left: 3px; }
+  .card .suit{ font-size: 9px; right: 3px; bottom: 2px; }
+  .card .pip{ font-size: 16px; }
+  .deck-stack{ width: 38px; height: 50px; }
+  .hand{ min-height: 64px; }
+  .stat{ padding: 3px 5px; }
+  .stat-value{ font-size: 11px; }
 }
 
 #menuModal .relic-choices {
