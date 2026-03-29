@@ -21,7 +21,7 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
 #app{ max-width: 1100px; margin: 0 auto; padding: 16px; }
 
 .topbar{
-  display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; margin-bottom: 10px;
+  display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center; margin-bottom: 10px;
 }
 .branding{ display:flex; gap:12px; align-items:center}
 .logo{ width:44px; height:44px; display:grid; place-items:center; background: linear-gradient(135deg, var(--primary), var(--primary-2)); border-radius:12px; font-size:22px; box-shadow: 0 10px 20px var(--shadow); cursor: pointer; transition: transform .15s ease; }
