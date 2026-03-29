@@ -68,7 +68,7 @@ export function startHand() {
   state.splitBets = [];
   state.splitResults = [];
   state.isSplitting = false;
-  state.splitHandIndex = 0;
+  state.splitHandIndex = 1;
   state.splitFromAces = false;
   state.dealerHasPlayed = false;
   ui.splitArea.style.display = "none";
@@ -182,7 +182,7 @@ export function onStand() {
 export function onSplit() {
   if (state.phase !== "player") return;
   if (!state.flags.canSplit) return;
-  const totalHands = 1 + state.splitHands.length;
+  const totalHands = state.splitHandIndex + state.splitHands.length;
   if (totalHands >= 4) return;
   if (state.chips < state.bet) return;
   if (state.playerHand.length !== 2 || state.playerHand[0].rank !== state.playerHand[1].rank) return;
@@ -201,7 +201,6 @@ export function onSplit() {
   const secondCard = state.playerHand.pop();
   state.splitHands.push([secondCard]);
   state.splitBets.push(newBet);
-  state.splitResults.push(null);
 
   // Update player hand display (now 1 card)
   ui.playerHandEl.innerHTML = "";
@@ -217,15 +216,22 @@ export function onSplit() {
   state.flags.canSurrender = false;
   setPhaseControls();
 
-  // Deal one card to current hand
+  // Deal one card to current hand, then one to the new split hand
   const DELAY = 300;
   setTimeout(() => {
     drawTo(state.playerHand);
     setTimeout(() => {
+      // Deal card to the new split hand
+      const splitIdx = state.splitHands.length - 1;
+      const splitCard = state.deck.pop();
+      state.splitHands[splitIdx].push(splitCard);
+      renderSplitHands();
+
       state.phase = "player";
 
       // Check if we can re-split (new pair after the deal)
-      if (state.playerHand.length === 2 && state.playerHand[0].rank === state.playerHand[1].rank && totalHands + 1 < 4) {
+      const totalAfter = state.splitHandIndex + state.splitHands.length;
+      if (state.playerHand.length === 2 && state.playerHand[0].rank === state.playerHand[1].rank && totalAfter < 4) {
         state.flags.canSplit = true;
       }
       state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
@@ -235,7 +241,8 @@ export function onSplit() {
         showHint("Split Aces — one card each. Standing...");
         setTimeout(() => onStand(), 400);
       } else {
-        showHint(`Play Hand ${state.splitHandIndex + 1} of ${1 + state.splitHands.length}.`);
+        const totalH = state.splitHandIndex + state.splitHands.length;
+        showHint(`Play Hand ${state.splitHandIndex} of ${totalH}.`);
         setPhaseControls();
       }
     }, 400);
@@ -421,7 +428,7 @@ export function endHand(outcome, opts = {}) {
   state.pendingGameOver = state.chips < state.minBet;
 
   // Don't trigger game over if there are more split hands to play
-  if (state.isSplitting && state.splitHandIndex < state.splitHands.length) {
+  if (state.isSplitting && state.splitHands.length > 0) {
     state.pendingGameOver = false;
   }
 
@@ -440,9 +447,8 @@ export function endHand(outcome, opts = {}) {
 export function openResultModal(outcome, info, chipTotal, starGain, starTotal, canGamble = false) {
   let title = outcome === "blackjack" ? "Blackjack!" : outcome === "win" ? "You Win!" : outcome === "lose" ? "Dealer Wins" : "Push";
   if (state.isSplitting) {
-    const handNum = state.splitHandIndex + 1;
-    const totalHands = 1 + state.splitHands.length;
-    title = `Hand ${handNum}/${totalHands}: ` + title;
+    const totalHands = state.splitHandIndex + state.splitHands.length;
+    title = `Hand ${state.splitHandIndex}/${totalHands}: ` + title;
   }
   ui.resultTitleEl.textContent = title;
   // build structured result line so parts can be colored/updated independently

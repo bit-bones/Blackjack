@@ -207,7 +207,7 @@ export function setPhaseControls() {
     ui.doubleBtn.disabled = !canDoubleNow;
     ui.surrenderBtn.disabled = !state.flags.canSurrender;
 
-    const totalHands = 1 + state.splitHands.length;
+    const totalHands = Math.max(1, state.splitHandIndex) + state.splitHands.length;
     const canSplitNow = state.flags.canSplit && totalHands < 4 && state.playerHand.length === 2 && state.chips >= state.bet;
     ui.splitBtn.disabled = !canSplitNow;
 
@@ -241,18 +241,11 @@ export function renderSplitHands() {
   ui.splitArea.style.display = "";
   state.splitHands.forEach((hand, i) => {
     const slot = document.createElement("div");
-    slot.className = "split-hand-slot";
-    const settled = state.splitResults[i] != null;
-    if (settled) slot.classList.add("settled");
-    else slot.classList.add("waiting");
+    slot.className = "split-hand-slot waiting";
 
     const label = document.createElement("div");
     label.className = "split-hand-label";
-    if (settled) {
-      label.textContent = state.splitResults[i];
-    } else {
-      label.textContent = `Hand ${i + 2}`;
-    }
+    label.textContent = `Hand ${state.splitHandIndex + i + 1}`;
     slot.appendChild(label);
 
     const handDiv = document.createElement("div");

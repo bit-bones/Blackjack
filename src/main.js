@@ -1,6 +1,6 @@
 import { state, resetHandFlags, handTotal } from './state.js';
 import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands } from './ui.js';
-import { onDeal, onHit, onStand, onSplit, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand } from './actions.js';
+import { onDeal, onHit, onStand, onSplit, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
 
@@ -22,7 +22,7 @@ const gameActions = {
     ui.resultModal.classList.add("hidden");
 
     // If splitting and there are more hands to play, transition
-    if (state.isSplitting && state.splitHandIndex < state.splitHands.length) {
+    if (state.isSplitting && state.splitHands.length > 0) {
       transitionToSplitHand();
       return;
     }
@@ -113,32 +113,16 @@ const gameActions = {
 };
 
 function transitionToSplitHand() {
-  // Store the just-settled hand result in the split results
-  // The current hand that was just played gets stored as a settled split hand
-  const settledHand = [...state.playerHand];
-  const settledOutcome = state.lastOutcome;
-
-  // The next hand index to play
-  const nextIdx = state.splitHandIndex;
+  // Take the next waiting hand off the queue
+  const nextHand = state.splitHands.shift();
+  const nextBet = state.splitBets.shift();
   state.splitHandIndex++;
-
-  // Replace the waiting hand at nextIdx with the settled hand info
-  // Swap: put settled hand where the next split hand was, take the next split hand out
-  const nextHand = state.splitHands[nextIdx];
-  const nextBet = state.splitBets[nextIdx];
-
-  // Replace the split hand entry with the settled hand
-  state.splitHands[nextIdx] = settledHand;
-  state.splitResults[nextIdx] = settledOutcome === "win" ? "Won" : settledOutcome === "blackjack" ? "BJ" : settledOutcome === "push" ? "Push" : "Lost";
 
   // Set up the next hand as current
   state.playerHand = nextHand;
   state.bet = nextBet;
 
-  // Deal one card to this hand if it only has 1 card (split card)
-  const needsDeal = state.playerHand.length === 1;
-
-  // Render
+  // Render player hand
   ui.playerHandEl.innerHTML = "";
   state.playerHand.forEach(c => {
     ui.playerHandEl.appendChild(createCardEl(c));
@@ -151,37 +135,20 @@ function transitionToSplitHand() {
   state.flags.canSplit = false;
   setTotalsStyles(null);
 
-  if (needsDeal) {
-    state.phase = "dealing";
-    setPhaseControls();
-    setTimeout(() => {
-      drawTo(state.playerHand);
-      setTimeout(() => {
-        state.phase = "player";
-        // Check for re-split eligibility
-        const totalHands = 1 + state.splitHands.length;
-        if (state.playerHand.length === 2 && state.playerHand[0].rank === state.playerHand[1].rank && totalHands < 4) {
-          state.flags.canSplit = true;
-        }
-        state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+  state.phase = "player";
 
-        if (state.splitFromAces) {
-          showHint("Split Aces — auto-standing.");
-          setTimeout(() => onStand(), 400);
-        } else {
-          const handNum = state.splitHandIndex + 1;
-          const totalH = 1 + state.splitHands.length;
-          showHint(`Play Hand ${handNum} of ${totalH}.`);
-          setPhaseControls();
-        }
-      }, 400);
-    }, 300);
+  // Check for re-split eligibility
+  const totalHands = state.splitHandIndex + state.splitHands.length;
+  if (state.playerHand.length === 2 && state.playerHand[0].rank === state.playerHand[1].rank && totalHands < 4) {
+    state.flags.canSplit = true;
+  }
+  state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+
+  if (state.splitFromAces) {
+    showHint("Split Aces — auto-standing.");
+    setTimeout(() => onStand(), 400);
   } else {
-    state.phase = "player";
-    state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
-    const handNum = state.splitHandIndex + 1;
-    const totalH = 1 + state.splitHands.length;
-    showHint(`Play Hand ${handNum} of ${totalH}.`);
+    showHint(`Play Hand ${state.splitHandIndex} of ${totalHands}.`);
     setPhaseControls();
   }
 }
