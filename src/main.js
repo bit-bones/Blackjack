@@ -1,5 +1,5 @@
 import { state, resetHandFlags, handTotal } from './state.js';
-import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl } from './ui.js';
+import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands } from './ui.js';
 import { onDeal, onHit, onStand, onSplit, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
@@ -21,16 +21,16 @@ const gameActions = {
   onResultContinue: () => {
     ui.resultModal.classList.add("hidden");
 
-    // If first hand of split just finished, transition to second hand
-    if (state.isSplitting && !state.playingSplitHand) {
+    // If splitting and there are more hands to play, transition
+    if (state.isSplitting && state.splitHandIndex < state.splitHands.length) {
       transitionToSplitHand();
       return;
     }
 
-    // Clean up split state after second hand
+    // Clean up split state after all hands settled
     if (state.isSplitting) {
       state.isSplitting = false;
-      state.playingSplitHand = false;
+      state.splitHandIndex = 0;
       state.splitFromAces = false;
       state.dealerHasPlayed = false;
       ui.splitArea.style.display = "none";
@@ -55,8 +55,9 @@ const gameActions = {
     state.chips = INITIAL_CHIPS; state.bet = 25; state.minBet = 5; state.stars = 0; state.streak = 0;
     state.relics = []; state.cheated = false; state.flags.usedResurrectionThisRun = false;
     // clear split state
-    state.splitHand = []; state.splitBet = 0;
-    state.isSplitting = false; state.playingSplitHand = false;
+    state.splitHands = []; state.splitBets = [];
+    state.splitResults = [];
+    state.isSplitting = false; state.splitHandIndex = 0;
     state.splitFromAces = false; state.dealerHasPlayed = false;
     // clear any existing hands and flags so the UI is fully reset for the new run
     state.dealerHand = [];
@@ -69,7 +70,7 @@ const gameActions = {
     ui.dealerHandEl.innerHTML = ""; ui.playerHandEl.innerHTML = "";
     ui.dealerTotalEl.textContent = "Total: 0"; ui.playerTotalEl.textContent = "Total: 0";
     ui.splitArea.style.display = "none";
-    ui.splitHandEl.innerHTML = ""; ui.splitTotalEl.textContent = "Total: 0";
+    ui.splitHandsContainer.innerHTML = "";
     // remove any win/lose/push classes left from previous run
     setTotalsStyles(null);
     setPhaseControls(); showHint("New run! Adjust bet and press Deal.");
@@ -112,41 +113,75 @@ const gameActions = {
 };
 
 function transitionToSplitHand() {
-  state.playingSplitHand = true;
-  state.bet = state.splitBet;
+  // Store the just-settled hand result in the split results
+  // The current hand that was just played gets stored as a settled split hand
+  const settledHand = [...state.playerHand];
+  const settledOutcome = state.lastOutcome;
 
-  // Move split hand to player hand
-  state.playerHand = [...state.splitHand];
-  state.splitHand = [];
+  // The next hand index to play
+  const nextIdx = state.splitHandIndex;
+  state.splitHandIndex++;
 
-  // Clear player area and render the split hand's cards
+  // Replace the waiting hand at nextIdx with the settled hand info
+  // Swap: put settled hand where the next split hand was, take the next split hand out
+  const nextHand = state.splitHands[nextIdx];
+  const nextBet = state.splitBets[nextIdx];
+
+  // Replace the split hand entry with the settled hand
+  state.splitHands[nextIdx] = settledHand;
+  state.splitResults[nextIdx] = settledOutcome === "win" ? "Won" : settledOutcome === "blackjack" ? "BJ" : settledOutcome === "push" ? "Push" : "Lost";
+
+  // Set up the next hand as current
+  state.playerHand = nextHand;
+  state.bet = nextBet;
+
+  // Deal one card to this hand if it only has 1 card (split card)
+  const needsDeal = state.playerHand.length === 1;
+
+  // Render
   ui.playerHandEl.innerHTML = "";
   state.playerHand.forEach(c => {
     ui.playerHandEl.appendChild(createCardEl(c));
   });
   ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
+  renderSplitHands();
 
-  // Hide split area
-  ui.splitArea.style.display = "none";
-  ui.splitHandEl.innerHTML = "";
-  ui.splitTotalEl.textContent = "Total: 0";
-
-  // Reset hand flags for second hand
-  state.phase = "player";
-  state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+  // Reset flags
   state.flags.canSurrender = false;
   state.flags.canSplit = false;
-
-  // Reset total styles
   setTotalsStyles(null);
 
-  if (state.splitFromAces) {
-    showHint("Split Aces — auto-standing.");
+  if (needsDeal) {
+    state.phase = "dealing";
+    setPhaseControls();
     setTimeout(() => {
-      onStand();
-    }, 500);
+      drawTo(state.playerHand);
+      setTimeout(() => {
+        state.phase = "player";
+        // Check for re-split eligibility
+        const totalHands = 1 + state.splitHands.length;
+        if (state.playerHand.length === 2 && state.playerHand[0].rank === state.playerHand[1].rank && totalHands < 4) {
+          state.flags.canSplit = true;
+        }
+        state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+
+        if (state.splitFromAces) {
+          showHint("Split Aces — auto-standing.");
+          setTimeout(() => onStand(), 400);
+        } else {
+          const handNum = state.splitHandIndex + 1;
+          const totalH = 1 + state.splitHands.length;
+          showHint(`Play Hand ${handNum} of ${totalH}.`);
+          setPhaseControls();
+        }
+      }, 400);
+    }, 300);
   } else {
-    showHint("Play your split hand.");
+    state.phase = "player";
+    state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+    const handNum = state.splitHandIndex + 1;
+    const totalH = 1 + state.splitHands.length;
+    showHint(`Play Hand ${handNum} of ${totalH}.`);
     setPhaseControls();
   }
 }

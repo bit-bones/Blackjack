@@ -9,10 +9,12 @@ export const state = {
   dealerHand: [],
   playerHand: [],
 
-  splitHand: [],
-  splitBet: 0,
+  // Split state: supports up to 3 re-splits (4 total hands)
+  splitHands: [],      // array of hand arrays waiting to be played
+  splitBets: [],       // bet for each split hand
+  splitResults: [],    // outcome string for each settled hand
   isSplitting: false,
-  playingSplitHand: false,
+  splitHandIndex: 0,   // which hand is currently being played (0-based across all hands)
   splitFromAces: false,
   dealerHasPlayed: false,
 

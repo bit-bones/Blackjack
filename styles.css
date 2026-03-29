@@ -50,8 +50,24 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
 .dealer-area{ margin-top: 6px; }
 .player-area{ position: absolute; left: 18px; right: 18px; bottom: 18px; }
 .hand-row{ display:flex; align-items: center; justify-content: space-between; gap:12px}
-.hand{ display:flex; gap: 14px; flex-wrap: wrap; min-height: 128px; align-items: center; }
-.total{ font-weight: 700; color: #e8ffe7; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); padding: 8px 12px; border-radius: 10px; }
+/* Overlapping card layout — cards slide together as more are added */
+.hand{
+  display: flex;
+  flex-wrap: nowrap;
+  min-height: 128px;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+}
+.hand .card {
+  flex-shrink: 0;
+  margin-right: -40px;
+  transition: margin-right 0.3s ease;
+}
+.hand .card:last-child {
+  margin-right: 0;
+}
+.total{ font-weight: 700; color: #e8ffe7; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08); padding: 8px 12px; border-radius: 10px; flex-shrink: 0; }
 
 .shoe{
   position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
@@ -59,17 +75,53 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
 }
 
 .split-area {
-  padding: 8px 8px 12px;
+  padding: 4px 8px;
   position: absolute;
   left: 18px;
   right: 18px;
-  bottom: 185px;
+  bottom: 160px;
 }
-.split-area.waiting .hand {
+.split-hands-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.split-hand-slot {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.split-hand-slot.waiting {
   opacity: 0.5;
 }
-.split-area.waiting .total {
-  opacity: 0.5;
+.split-hand-slot.settled {
+  opacity: 0.4;
+}
+.split-hand-slot .hand {
+  min-height: 60px;
+}
+.split-hand-slot .hand .card {
+  width: 50px;
+  height: 70px;
+  margin-right: -30px;
+}
+.split-hand-slot .hand .card .rank { font-size: 12px; top: 4px; left: 5px; }
+.split-hand-slot .hand .card .suit { font-size: 10px; right: 5px; bottom: 4px; }
+.split-hand-slot .hand .card .pip { font-size: 18px; }
+.split-hand-slot .hand .card:last-child {
+  margin-right: 0;
+}
+.split-hand-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
 }
 .split-area .role {
   color: var(--accent);
@@ -502,10 +554,13 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 
   .split-area {
     position: static;
-    padding: 6px 6px 8px;
+    padding: 4px 6px;
   }
 
-  .hand{ gap: 8px; min-height: 90px; }
+  .hand{ min-height: 90px; }
+  .hand .card {
+    margin-right: -30px;
+  }
   .hand-row{ gap: 8px; }
   .card{ width: 62px; height: 88px; border-radius: 8px; }
   .card .rank{ top: 5px; left: 6px; font-size: 14px; }
@@ -711,6 +766,11 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   .card .pip{ font-size: 20px; }
   .deck-stack{ width: 42px; height: 56px; }
   .hand{ min-height: 76px; }
+  .hand .card { margin-right: -26px; }
+  .split-hand-slot .hand .card { width: 42px; height: 56px; margin-right: -22px; }
+  .split-hand-slot .hand .card .rank { font-size: 10px; }
+  .split-hand-slot .hand .card .suit { font-size: 8px; }
+  .split-hand-slot .hand .card .pip { font-size: 16px; }
   .stat{ padding: 3px 5px; }
   .stat-label{ font-size: 10px; }
   .stat-value{ font-size: 11px; }

@@ -1,5 +1,5 @@
 import { state, handTotal, isBlackjack, hasRelic, getRelicHookValue, resetHandFlags, shuffleInPlace } from './state.js';
-import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList } from './ui.js';
+import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList, renderSplitHands } from './ui.js';
 import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET } from './constants.js';
 
 export function newShuffledDeck() {
@@ -15,17 +15,13 @@ export function newShuffledDeck() {
 export function drawTo(hand, hidden = false) {
   const card = state.deck.pop();
   hand.push(card);
-  let container;
-  if (hand === state.playerHand) container = ui.playerHandEl;
-  else if (hand === state.splitHand) container = ui.splitHandEl;
-  else container = ui.dealerHandEl;
+  const container = (hand === state.playerHand) ? ui.playerHandEl : ui.dealerHandEl;
   const el = createCardEl(card, hidden);
 
   // Calculate animation offset from shoe to target position
   const shoe = document.querySelector('.deck-stack');
   if (shoe) {
     const shoeRect = shoe.getBoundingClientRect();
-    // Append hidden to measure target position
     el.style.visibility = 'hidden';
     el.style.animation = 'none';
     container.appendChild(el);
@@ -34,10 +30,8 @@ export function drawTo(hand, hidden = false) {
     const dy = shoeRect.top + shoeRect.height / 2 - (cardRect.top + cardRect.height / 2);
     el.style.setProperty('--deal-x', `${Math.round(dx)}px`);
     el.style.setProperty('--deal-y', `${Math.round(dy)}px`);
-    // Trigger animation
     el.style.removeProperty('visibility');
     el.style.removeProperty('animation');
-    // Force reflow so animation replays
     void el.offsetWidth;
   } else {
     container.appendChild(el);
@@ -45,8 +39,6 @@ export function drawTo(hand, hidden = false) {
 
   if (hand === state.playerHand) {
     ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
-  } else if (hand === state.splitHand) {
-    ui.splitTotalEl.textContent = `Total: ${handTotal(state.splitHand).total}`;
   } else {
     const t = state.flags.dealerRevealed ? handTotal(state.dealerHand).total : handTotal([state.dealerHand[0]]).total;
     ui.dealerTotalEl.textContent = `Total: ${t}`;
@@ -72,15 +64,15 @@ export function startHand() {
   state.playerHand = [];
 
   // Clear split state
-  state.splitHand = [];
-  state.splitBet = 0;
+  state.splitHands = [];
+  state.splitBets = [];
+  state.splitResults = [];
   state.isSplitting = false;
-  state.playingSplitHand = false;
+  state.splitHandIndex = 0;
   state.splitFromAces = false;
   state.dealerHasPlayed = false;
   ui.splitArea.style.display = "none";
-  ui.splitHandEl.innerHTML = "";
-  ui.splitTotalEl.textContent = "Total: 0";
+  ui.splitHandsContainer.innerHTML = "";
 
   setTotalsStyles(null);
   setPhaseControls();
@@ -189,34 +181,35 @@ export function onStand() {
 
 export function onSplit() {
   if (state.phase !== "player") return;
-  if (!state.flags.canSplit || state.isSplitting) return;
+  if (!state.flags.canSplit) return;
+  const totalHands = 1 + state.splitHands.length;
+  if (totalHands >= 4) return;
   if (state.chips < state.bet) return;
+  if (state.playerHand.length !== 2 || state.playerHand[0].rank !== state.playerHand[1].rank) return;
 
   state.isSplitting = true;
-  state.playingSplitHand = false;
-  state.splitFromAces = state.playerHand[0].rank === "A";
+  const isAces = state.playerHand[0].rank === "A";
+  if (isAces) state.splitFromAces = true;
   state.dealerHasPlayed = false;
 
-  // Deduct chips for second hand
-  state.splitBet = state.bet;
-  state.chips -= state.splitBet;
+  // Deduct chips for new hand's bet
+  const newBet = state.bet;
+  state.chips -= newBet;
   updateTopbar();
 
-  // Move second card to split hand
+  // Move second card to a new split hand
   const secondCard = state.playerHand.pop();
-  state.splitHand = [secondCard];
+  state.splitHands.push([secondCard]);
+  state.splitBets.push(newBet);
+  state.splitResults.push(null);
 
   // Update player hand display (now 1 card)
   ui.playerHandEl.innerHTML = "";
   state.playerHand.forEach(c => ui.playerHandEl.appendChild(createCardEl(c)));
   ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
 
-  // Show split area with the second card
-  ui.splitHandEl.innerHTML = "";
-  state.splitHand.forEach(c => ui.splitHandEl.appendChild(createCardEl(c)));
-  ui.splitTotalEl.textContent = `Total: ${handTotal(state.splitHand).total}`;
-  ui.splitArea.style.display = "";
-  ui.splitArea.classList.add("waiting");
+  // Show split area
+  renderSplitHands();
 
   // Disable controls during dealing
   state.phase = "dealing";
@@ -224,26 +217,28 @@ export function onSplit() {
   state.flags.canSurrender = false;
   setPhaseControls();
 
-  // Deal one card to each hand with staggered animation
+  // Deal one card to current hand
   const DELAY = 300;
   setTimeout(() => {
     drawTo(state.playerHand);
     setTimeout(() => {
-      drawTo(state.splitHand);
-      setTimeout(() => {
-        state.phase = "player";
-        state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+      state.phase = "player";
 
-        if (state.splitFromAces) {
-          // Can't hit after splitting aces, auto-stand
-          showHint("Split Aces — one card each. Standing...");
-          setTimeout(() => onStand(), 400);
-        } else {
-          showHint("Play your first hand.");
-          setPhaseControls();
-        }
-      }, 400);
-    }, DELAY);
+      // Check if we can re-split (new pair after the deal)
+      if (state.playerHand.length === 2 && state.playerHand[0].rank === state.playerHand[1].rank && totalHands + 1 < 4) {
+        state.flags.canSplit = true;
+      }
+      state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+
+      if (isAces) {
+        // Can't hit after splitting aces, auto-stand
+        showHint("Split Aces — one card each. Standing...");
+        setTimeout(() => onStand(), 400);
+      } else {
+        showHint(`Play Hand ${state.splitHandIndex + 1} of ${1 + state.splitHands.length}.`);
+        setPhaseControls();
+      }
+    }, 400);
   }, DELAY);
 }
 
@@ -331,10 +326,14 @@ function settle() {
   if (state.isSplitting) state.dealerHasPlayed = true;
   const p = handTotal(state.playerHand).total;
   const d = handTotal(state.dealerHand).total;
-  if (d > 21) endHand("win");
-  else if (p > d) endHand("win");
-  else if (p < d) endHand("lose");
-  else endHand("push");
+
+  // For split aces + 10 card = 21, pay 1:1 as "win" not "blackjack"
+  let outcome;
+  if (d > 21) outcome = "win";
+  else if (p > d) outcome = "win";
+  else if (p < d) outcome = "lose";
+  else outcome = "push";
+  endHand(outcome);
 }
 
 export function endHand(outcome, opts = {}) {
@@ -421,8 +420,8 @@ export function endHand(outcome, opts = {}) {
 
   state.pendingGameOver = state.chips < state.minBet;
 
-  // Don't trigger game over after first hand of split — second hand may recover
-  if (state.isSplitting && !state.playingSplitHand) {
+  // Don't trigger game over if there are more split hands to play
+  if (state.isSplitting && state.splitHandIndex < state.splitHands.length) {
     state.pendingGameOver = false;
   }
 
@@ -441,7 +440,9 @@ export function endHand(outcome, opts = {}) {
 export function openResultModal(outcome, info, chipTotal, starGain, starTotal, canGamble = false) {
   let title = outcome === "blackjack" ? "Blackjack!" : outcome === "win" ? "You Win!" : outcome === "lose" ? "Dealer Wins" : "Push";
   if (state.isSplitting) {
-    title = (state.playingSplitHand ? "Hand 2: " : "Hand 1: ") + title;
+    const handNum = state.splitHandIndex + 1;
+    const totalHands = 1 + state.splitHands.length;
+    title = `Hand ${handNum}/${totalHands}: ` + title;
   }
   ui.resultTitleEl.textContent = title;
   // build structured result line so parts can be colored/updated independently
@@ -493,13 +494,14 @@ export function nextRound() {
   state.phase = "betting";
   state.bet = Math.max(state.minBet, Math.min(state.bet, Math.min(state.chips, MAX_BET)));
   state.dealerHand = []; state.playerHand = [];
-  state.splitHand = []; state.splitBet = 0;
-  state.isSplitting = false; state.playingSplitHand = false;
+  state.splitHands = []; state.splitBets = [];
+  state.splitResults = [];
+  state.isSplitting = false; state.splitHandIndex = 0;
   state.splitFromAces = false; state.dealerHasPlayed = false;
   ui.dealerHandEl.innerHTML = ""; ui.playerHandEl.innerHTML = "";
   ui.dealerTotalEl.textContent = "Total: 0"; ui.playerTotalEl.textContent = "Total: 0";
   ui.splitArea.style.display = "none";
-  ui.splitHandEl.innerHTML = ""; ui.splitTotalEl.textContent = "Total: 0";
+  ui.splitHandsContainer.innerHTML = "";
   showHint("Next hand ready — adjust bet and press Deal.");
   state.pendingGameOver = false; state.isAllIn = false; state.lastWinDelta = 0;
   updateTopbar();

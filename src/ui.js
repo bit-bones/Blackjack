@@ -60,8 +60,7 @@ export const ui = {
   resetHotkeysBtn: $("#resetHotkeysBtn"),
   toastEl: $("#toast"),
   splitArea: $("#splitArea"),
-  splitHandEl: $("#split-hand"),
-  splitTotalEl: $("#split-total"),
+  splitHandsContainer: $("#splitHandsContainer"),
 };
 
 export function createCardEl(card, faceDown = false) {
@@ -208,7 +207,8 @@ export function setPhaseControls() {
     ui.doubleBtn.disabled = !canDoubleNow;
     ui.surrenderBtn.disabled = !state.flags.canSurrender;
 
-    const canSplitNow = state.flags.canSplit && !state.isSplitting && state.playerHand.length === 2 && state.chips >= state.bet;
+    const totalHands = 1 + state.splitHands.length;
+    const canSplitNow = state.flags.canSplit && totalHands < 4 && state.playerHand.length === 2 && state.chips >= state.bet;
     ui.splitBtn.disabled = !canSplitNow;
 
     const hasPeek = hasRelic("peek");
@@ -228,5 +228,39 @@ export function renderRelicsList() {
     el.className = "relic";
     el.innerHTML = `<div class="icon">${r.icon}</div><div><div class="name">${r.name}</div><div class="desc">${r.desc}</div></div>`;
     ui.relicsContainer.appendChild(el);
+  });
+}
+
+/** Render all waiting/settled split hands in the middle area */
+export function renderSplitHands() {
+  ui.splitHandsContainer.innerHTML = "";
+  if (state.splitHands.length === 0) {
+    ui.splitArea.style.display = "none";
+    return;
+  }
+  ui.splitArea.style.display = "";
+  state.splitHands.forEach((hand, i) => {
+    const slot = document.createElement("div");
+    slot.className = "split-hand-slot";
+    const settled = state.splitResults[i] != null;
+    if (settled) slot.classList.add("settled");
+    else slot.classList.add("waiting");
+
+    const label = document.createElement("div");
+    label.className = "split-hand-label";
+    if (settled) {
+      label.textContent = state.splitResults[i];
+    } else {
+      label.textContent = `Hand ${i + 2}`;
+    }
+    slot.appendChild(label);
+
+    const handDiv = document.createElement("div");
+    handDiv.className = "hand";
+    hand.forEach(c => {
+      handDiv.appendChild(createCardEl(c));
+    });
+    slot.appendChild(handDiv);
+    ui.splitHandsContainer.appendChild(slot);
   });
 }
