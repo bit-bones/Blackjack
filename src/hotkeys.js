@@ -2,7 +2,7 @@ import { state } from './state.js';
 import { DEFAULT_HOTKEYS } from './constants.js';
 import { ui, toast } from './ui.js';
 
-export let hotkeys = JSON.parse(localStorage.getItem("bjrl-hotkeys")) || { ...DEFAULT_HOTKEYS };
+export let hotkeys = { ...DEFAULT_HOTKEYS, ...(JSON.parse(localStorage.getItem("bjrl-hotkeys")) || {}) };
 let listeningForAction = null;
 
 export function saveHotkeys() {
@@ -20,6 +20,7 @@ export function renderHotkeys() {
     { id: "stand", label: "Stand", category: "Player" },
     { id: "double", label: "Double", category: "Player" },
     { id: "surrender", label: "Surrender", category: "Player" },
+    { id: "split", label: "Split", category: "Player" },
     { id: "peek", label: "Peek", category: "Player" },
     { id: "continue", label: "Continue", category: "Result" },
     { id: "gamble", label: "Gamble", category: "Result" },
@@ -110,6 +111,7 @@ export function setupKeyboardListeners(gameActions) {
       if (pressed === hotkeys.stand) gameActions.onStand();
       if (pressed === hotkeys.double) gameActions.onDouble();
       if (pressed === hotkeys.surrender) gameActions.onSurrender();
+      if (pressed === hotkeys.split) gameActions.onSplit();
       if (pressed === hotkeys.peek) gameActions.onPeek();
     }
   });

@@ -1,6 +1,6 @@
-import { state, resetHandFlags } from './state.js';
-import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast } from './ui.js';
-import { onDeal, onHit, onStand, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand } from './actions.js';
+import { state, resetHandFlags, handTotal } from './state.js';
+import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl } from './ui.js';
+import { onDeal, onHit, onStand, onSplit, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
 
@@ -16,10 +16,26 @@ function init() {
 
 // Action Glue
 const gameActions = {
-  onDeal, onHit, onStand, onGamblePayout, pickRelic,
+  onDeal, onHit, onStand, onSplit, onGamblePayout, pickRelic,
   onSkipRelic: () => { state.stars = 0; updateTopbar(); ui.relicModal.classList.add("hidden"); nextRound(); },
   onResultContinue: () => {
     ui.resultModal.classList.add("hidden");
+
+    // If first hand of split just finished, transition to second hand
+    if (state.isSplitting && !state.playingSplitHand) {
+      transitionToSplitHand();
+      return;
+    }
+
+    // Clean up split state after second hand
+    if (state.isSplitting) {
+      state.isSplitting = false;
+      state.playingSplitHand = false;
+      state.splitFromAces = false;
+      state.dealerHasPlayed = false;
+      ui.splitArea.style.display = "none";
+    }
+
     if (state.pendingGameOver) {
       ui.finalHighScoreEl.textContent = state.highScore;
       if (state.chips <= 0) {
@@ -38,6 +54,10 @@ const gameActions = {
     ui.menuModal.classList.add("hidden"); ui.gameOverModal.classList.add("hidden");
     state.chips = INITIAL_CHIPS; state.bet = 25; state.minBet = 5; state.stars = 0; state.streak = 0;
     state.relics = []; state.cheated = false; state.flags.usedResurrectionThisRun = false;
+    // clear split state
+    state.splitHand = []; state.splitBet = 0;
+    state.isSplitting = false; state.playingSplitHand = false;
+    state.splitFromAces = false; state.dealerHasPlayed = false;
     // clear any existing hands and flags so the UI is fully reset for the new run
     state.dealerHand = [];
     state.playerHand = [];
@@ -48,6 +68,8 @@ const gameActions = {
     // explicitly clear DOM and totals to be safe
     ui.dealerHandEl.innerHTML = ""; ui.playerHandEl.innerHTML = "";
     ui.dealerTotalEl.textContent = "Total: 0"; ui.playerTotalEl.textContent = "Total: 0";
+    ui.splitArea.style.display = "none";
+    ui.splitHandEl.innerHTML = ""; ui.splitTotalEl.textContent = "Total: 0";
     // remove any win/lose/push classes left from previous run
     setTotalsStyles(null);
     setPhaseControls(); showHint("New run! Adjust bet and press Deal.");
@@ -89,6 +111,46 @@ const gameActions = {
   }
 };
 
+function transitionToSplitHand() {
+  state.playingSplitHand = true;
+  state.bet = state.splitBet;
+
+  // Move split hand to player hand
+  state.playerHand = [...state.splitHand];
+  state.splitHand = [];
+
+  // Clear player area and render the split hand's cards
+  ui.playerHandEl.innerHTML = "";
+  state.playerHand.forEach(c => {
+    ui.playerHandEl.appendChild(createCardEl(c));
+  });
+  ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
+
+  // Hide split area
+  ui.splitArea.style.display = "none";
+  ui.splitHandEl.innerHTML = "";
+  ui.splitTotalEl.textContent = "Total: 0";
+
+  // Reset hand flags for second hand
+  state.phase = "player";
+  state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+  state.flags.canSurrender = false;
+  state.flags.canSplit = false;
+
+  // Reset total styles
+  setTotalsStyles(null);
+
+  if (state.splitFromAces) {
+    showHint("Split Aces — auto-standing.");
+    setTimeout(() => {
+      onStand();
+    }, 500);
+  } else {
+    showHint("Play your split hand.");
+    setPhaseControls();
+  }
+}
+
 function openRelicChoiceModal(choices) {
   state.currentRelicChoices = choices; state.selectedRelicIndex = -1;
   ui.relicChoicesEl.innerHTML = "";
@@ -107,6 +169,7 @@ ui.hitBtn.addEventListener("click", onHit);
 ui.standBtn.addEventListener("click", onStand);
 ui.doubleBtn.addEventListener("click", gameActions.onDouble);
 ui.surrenderBtn.addEventListener("click", gameActions.onSurrender);
+ui.splitBtn.addEventListener("click", onSplit);
 ui.peekBtn.addEventListener("click", gameActions.onPeek);
 ui.resultContinueBtn.addEventListener("click", gameActions.onResultContinue);
 ui.resultGambleBtn.addEventListener("click", onGamblePayout);

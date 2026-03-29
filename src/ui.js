@@ -22,6 +22,7 @@ export const ui = {
   standBtn: $("#standBtn"),
   doubleBtn: $("#doubleBtn"),
   surrenderBtn: $("#surrenderBtn"),
+  splitBtn: $("#splitBtn"),
   peekBtn: $("#peekBtn"),
   hintEl: $("#hint"),
   relicsContainer: $("#relicsContainer"),
@@ -57,7 +58,10 @@ export const ui = {
   hotkeysListEl: $("#hotkeysList"),
   closeHotkeysBtn: $("#closeHotkeysBtn"),
   resetHotkeysBtn: $("#resetHotkeysBtn"),
-  toastEl: $("#toast")
+  toastEl: $("#toast"),
+  splitArea: $("#splitArea"),
+  splitHandEl: $("#split-hand"),
+  splitTotalEl: $("#split-total"),
 };
 
 export function createCardEl(card, faceDown = false) {
@@ -185,7 +189,7 @@ export function setPhaseControls() {
     controlsEl.classList.add(state.phase === 'betting' ? 'phase-betting' : 'phase-playing');
   }
 
-  [ui.hitBtn, ui.standBtn, ui.doubleBtn, ui.surrenderBtn, ui.peekBtn].forEach(b => b.disabled = true);
+  [ui.hitBtn, ui.standBtn, ui.doubleBtn, ui.surrenderBtn, ui.splitBtn, ui.peekBtn].forEach(b => b.disabled = true);
 
   if (state.phase === "betting") {
     ui.dealBtn.disabled = state.bet < state.minBet || state.bet > state.chips;
@@ -203,6 +207,9 @@ export function setPhaseControls() {
     const canDoubleNow = state.flags.canDouble && state.playerHand.length === 2 && (state.chips >= state.bet);
     ui.doubleBtn.disabled = !canDoubleNow;
     ui.surrenderBtn.disabled = !state.flags.canSurrender;
+
+    const canSplitNow = state.flags.canSplit && !state.isSplitting && state.playerHand.length === 2 && state.chips >= state.bet;
+    ui.splitBtn.disabled = !canSplitNow;
 
     const hasPeek = hasRelic("peek");
     ui.peekBtn.disabled = !(hasPeek && !state.flags.usedPeekThisHand);

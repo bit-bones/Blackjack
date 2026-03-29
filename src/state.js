@@ -9,11 +9,19 @@ export const state = {
   dealerHand: [],
   playerHand: [],
 
+  splitHand: [],
+  splitBet: 0,
+  isSplitting: false,
+  playingSplitHand: false,
+  splitFromAces: false,
+  dealerHasPlayed: false,
+
   phase: "betting", // betting | player | dealer | payout
   flags: {
     dealerRevealed: false,
     canDouble: true,
     canSurrender: true,
+    canSplit: false,
     usedLuckyCoinThisHand: false,
     usedPeekThisHand: false,
     usedResurrectionThisRun: false,
@@ -72,6 +80,7 @@ export function resetHandFlags() {
   state.flags.dealerRevealed = false;
   state.flags.canDouble = true;
   state.flags.canSurrender = true;
+  state.flags.canSplit = false;
   state.flags.usedLuckyCoinThisHand = false;
   state.flags.usedPeekThisHand = false;
 }

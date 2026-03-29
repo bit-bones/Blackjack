@@ -57,6 +57,23 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
   position: absolute; top: 50%; right: 20px; transform: translateY(-50%);
   display:flex; flex-direction: column; align-items:center; gap:6px;
 }
+
+.split-area {
+  padding: 8px 8px 12px;
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 185px;
+}
+.split-area.waiting .hand {
+  opacity: 0.5;
+}
+.split-area.waiting .total {
+  opacity: 0.5;
+}
+.split-area .role {
+  color: var(--accent);
+}
 .deck-stack{ position: relative; width: 76px; height: 100px; }
 .deck-card{
   position:absolute; inset:0; border-radius: 8px; background: repeating-linear-gradient(45deg,#1c2948,#1c2948 6px,#142037 6px,#142037 12px);
@@ -483,6 +500,11 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
     padding: 6px 6px 8px;
   }
 
+  .split-area {
+    position: static;
+    padding: 6px 6px 8px;
+  }
+
   .hand{ gap: 8px; min-height: 90px; }
   .hand-row{ gap: 8px; }
   .card{ width: 62px; height: 88px; border-radius: 8px; }
@@ -598,6 +620,7 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   .controls.phase-betting .actions #standBtn,
   .controls.phase-betting .actions #doubleBtn,
   .controls.phase-betting .actions #surrenderBtn,
+  .controls.phase-betting .actions #splitBtn,
   .controls.phase-betting .actions #peekBtn{ display: none !important; }
 
   /* Playing phase: hide betting, show play actions */
@@ -606,6 +629,7 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   .controls.phase-playing .actions #hitBtn,
   .controls.phase-playing .actions #standBtn,
   .controls.phase-playing .actions #doubleBtn,
+  .controls.phase-playing .actions #splitBtn,
   .controls.phase-playing .actions #surrenderBtn{ display: block; }
 
   /* Action buttons: 2-col grid, big touch targets */
