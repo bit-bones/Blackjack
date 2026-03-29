@@ -110,9 +110,12 @@ export function startHand() {
 
 export function onHit() {
   if (state.phase !== "player") return;
+  state.phase = "animating"; // lock input during animation
   drawTo(state.playerHand);
   state.flags.canDouble = false;
   state.flags.canSurrender = false;
+
+  const ANIM_DELAY = 450; // let deal animation finish
 
   const after = handTotal(state.playerHand).total;
 
@@ -130,22 +133,31 @@ export function onHit() {
       ui.playerHandEl.appendChild(createCardEl(replacement));
       ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
       showHint("Lucky Coin saved you from a bust!");
+      state.phase = "player";
       setPhaseControls();
     }, 180);
     return;
   }
 
   if (after > 21) {
-    ui.playerHandEl.classList.add("shake");
-    setTimeout(() => ui.playerHandEl.classList.remove("shake"), 250);
-    standOrBust();
+    // Let the card animation play, then show bust
+    setTimeout(() => {
+      ui.playerHandEl.classList.add("shake");
+      setTimeout(() => ui.playerHandEl.classList.remove("shake"), 250);
+      standOrBust();
+    }, ANIM_DELAY);
   } else {
-    setPhaseControls();
+    // Let animation finish then re-enable controls
+    setTimeout(() => {
+      state.phase = "player";
+      setPhaseControls();
+    }, ANIM_DELAY);
   }
 }
 
 export function onStand() {
   if (state.phase !== "player") return;
+  state.phase = "animating"; // lock input during dealer play
   state.flags.canDouble = false;
   state.flags.canSurrender = false;
   standOrBust();
@@ -162,16 +174,65 @@ function standOrBust() {
   renderHands(true);
   showHint("Dealer plays...");
   setPhaseControls();
-  setTimeout(dealerPlay, 350);
+  setTimeout(dealerPlay, 450);
 }
 
 function dealerPlay() {
+  const CARD_DELAY = 500; // ms between each dealer card
   let dt = handTotal(state.dealerHand);
+
+  // Collect all cards the dealer needs to draw
+  const cardsToDraw = [];
   while (dt.total < 17) {
-    drawTo(state.dealerHand);
+    const card = state.deck.pop();
+    state.dealerHand.push(card);
+    cardsToDraw.push(card);
     dt = handTotal(state.dealerHand);
   }
-  settle();
+
+  // Remove them from the hand array — we'll re-add as we animate
+  for (let i = 0; i < cardsToDraw.length; i++) {
+    state.dealerHand.pop();
+  }
+
+  if (cardsToDraw.length === 0) {
+    settle();
+    return;
+  }
+
+  // Animate each card one at a time
+  cardsToDraw.forEach((card, i) => {
+    setTimeout(() => {
+      state.dealerHand.push(card);
+      const el = createCardEl(card);
+
+      // Animate from shoe
+      const shoe = document.querySelector('.deck-stack');
+      if (shoe) {
+        const shoeRect = shoe.getBoundingClientRect();
+        el.style.visibility = 'hidden';
+        el.style.animation = 'none';
+        ui.dealerHandEl.appendChild(el);
+        const cardRect = el.getBoundingClientRect();
+        const dx = shoeRect.left + shoeRect.width / 2 - (cardRect.left + cardRect.width / 2);
+        const dy = shoeRect.top + shoeRect.height / 2 - (cardRect.top + cardRect.height / 2);
+        el.style.setProperty('--deal-x', `${Math.round(dx)}px`);
+        el.style.setProperty('--deal-y', `${Math.round(dy)}px`);
+        el.style.removeProperty('visibility');
+        el.style.removeProperty('animation');
+        void el.offsetWidth;
+      } else {
+        ui.dealerHandEl.appendChild(el);
+      }
+
+      ui.dealerTotalEl.textContent = `Total: ${handTotal(state.dealerHand).total}`;
+
+      // After last card, wait for animation then settle
+      if (i === cardsToDraw.length - 1) {
+        setTimeout(settle, 450);
+      }
+    }, i * CARD_DELAY);
+  });
 }
 
 function settle() {
@@ -275,7 +336,7 @@ export function endHand(outcome, opts = {}) {
   setTimeout(() => {
     const canGamble = (outcome === "win" || outcome === "blackjack") && hasRelic("double-or-nothing");
     openResultModal(outcome, info, state.chips, starGain, state.stars, canGamble);
-  }, 250);
+  }, 500);
 }
 
 export function openResultModal(outcome, info, chipTotal, starGain, starTotal, canGamble = false) {
