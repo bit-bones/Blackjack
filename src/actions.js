@@ -181,7 +181,6 @@ export function onStand() {
 
 export function onSplit() {
   if (state.phase !== "player") return;
-  if (!state.flags.canSplit) return;
   const totalHands = state.splitHandIndex + state.splitHands.length;
   if (totalHands >= 4) return;
   if (state.chips < state.bet) return;

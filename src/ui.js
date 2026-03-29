@@ -208,7 +208,8 @@ export function setPhaseControls() {
     ui.surrenderBtn.disabled = !state.flags.canSurrender;
 
     const totalHands = Math.max(1, state.splitHandIndex) + state.splitHands.length;
-    const canSplitNow = state.flags.canSplit && totalHands < 4 && state.playerHand.length === 2 && state.chips >= state.bet;
+    const hasPair = state.playerHand.length === 2 && state.playerHand[0] && state.playerHand[1] && state.playerHand[0].value === state.playerHand[1].value;
+    const canSplitNow = hasPair && totalHands < 4 && state.chips >= state.bet;
     ui.splitBtn.disabled = !canSplitNow;
 
     const hasPeek = hasRelic("peek");
