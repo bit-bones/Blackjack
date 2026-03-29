@@ -1,5 +1,5 @@
 import { state, handTotal, isBlackjack, hasRelic, getRelicHookValue, resetHandFlags, shuffleInPlace } from './state.js';
-import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList, renderSplitHands, dealToSplitHand } from './ui.js';
+import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList, renderSplitHands, dealToSplitHand, animateCardToSplitArea } from './ui.js';
 import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET } from './constants.js';
 
 export function newShuffledDeck() {
@@ -114,7 +114,7 @@ export function startHand() {
         const dealerBJ = isBlackjack(state.dealerHand);
         if (playerBJ || dealerBJ) {
           state.flags.dealerRevealed = true;
-          renderHands(true);
+          revealDealerCard();
           if (playerBJ && dealerBJ) endHand("push");
           else if (playerBJ) endHand("blackjack");
           else endHand("lose");
@@ -202,13 +202,8 @@ export function onSplit() {
   state.splitHands.push([secondCard]);
   state.splitBets.push(newBet);
 
-  // Update player hand display (now 1 card)
-  ui.playerHandEl.innerHTML = "";
-  state.playerHand.forEach(c => ui.playerHandEl.appendChild(createCardEl(c)));
-  ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
-
-  // Show split area
-  renderSplitHands();
+  // Animate the card moving up to the split area
+  animateCardToSplitArea(state.playerHand, state.splitHands.length - 1);
 
   // Disable controls during dealing
   state.phase = "dealing";

@@ -1,5 +1,5 @@
 import { state, resetHandFlags, handTotal } from './state.js';
-import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands } from './ui.js';
+import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea } from './ui.js';
 import { onDeal, onHit, onStand, onSplit, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
@@ -122,12 +122,8 @@ function transitionToSplitHand() {
   state.playerHand = nextHand;
   state.bet = nextBet;
 
-  // Render player hand
-  ui.playerHandEl.innerHTML = "";
-  state.playerHand.forEach(c => {
-    ui.playerHandEl.appendChild(createCardEl(c));
-  });
-  ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
+  // Animate cards from split area down to player area
+  animateCardsToPlayerArea(state.playerHand);
   renderSplitHands();
 
   // Reset flags

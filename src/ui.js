@@ -285,3 +285,81 @@ export function dealToSplitHand(splitIndex, card) {
     handDiv.appendChild(el);
   }
 }
+
+/**
+ * Animate a card element from a source position to its current position.
+ * Measures sourceRect vs card's actual rect and sets custom properties
+ * for the move-card animation.
+ */
+function animateMove(el, fromRect) {
+  el.classList.remove('deal-in', 'move-card');
+  el.style.animation = 'none';
+  el.style.visibility = 'hidden';
+  void el.offsetWidth;
+  const toRect = el.getBoundingClientRect();
+  const dx = fromRect.left + fromRect.width / 2 - (toRect.left + toRect.width / 2);
+  const dy = fromRect.top + fromRect.height / 2 - (toRect.top + toRect.height / 2);
+  el.style.setProperty('--move-x', `${Math.round(dx)}px`);
+  el.style.setProperty('--move-y', `${Math.round(dy)}px`);
+  el.style.removeProperty('visibility');
+  el.style.removeProperty('animation');
+  el.classList.add('move-card');
+  void el.offsetWidth;
+}
+
+/**
+ * Move the second card from the player hand up into a newly-created split slot.
+ * Returns the slot element so the caller can chain a deal animation afterwards.
+ */
+export function animateCardToSplitArea(hand, splitIndex) {
+  // Grab the current position of the last card in the player hand (the one being moved)
+  const playerCards = ui.playerHandEl.children;
+  const movingEl = playerCards[playerCards.length - 1];
+  if (!movingEl) return;
+  const fromRect = movingEl.getBoundingClientRect();
+
+  // Remove it from player hand display
+  ui.playerHandEl.removeChild(movingEl);
+  ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
+
+  // Re-render split hands so the slot exists with the card in it
+  renderSplitHands();
+
+  // Find the card element that was just rendered in the split slot
+  const slot = ui.splitHandsContainer.querySelector(`[data-split-index="${splitIndex}"]`);
+  if (!slot) return;
+  const slotCard = slot.querySelector('.hand .card');
+  if (!slotCard) return;
+
+  animateMove(slotCard, fromRect);
+}
+
+/**
+ * Animate all cards from a split hand slot down into the player hand area.
+ * Captures positions from the slot, renders cards into playerHandEl, then animates.
+ */
+export function animateCardsToPlayerArea(cards) {
+  // Capture where the cards currently are in the split slot before we change anything
+  // We need to find the slot that's about to be removed (index 0 since we shift)
+  const slot = ui.splitHandsContainer.querySelector('[data-split-index="0"]');
+  const fromRects = [];
+  if (slot) {
+    const slotCards = slot.querySelectorAll('.hand .card');
+    slotCards.forEach(el => fromRects.push(el.getBoundingClientRect()));
+  }
+
+  // Now render the player hand with the new cards
+  ui.playerHandEl.innerHTML = "";
+  cards.forEach(c => {
+    const el = createCardEl(c);
+    el.classList.remove('deal-in');
+    ui.playerHandEl.appendChild(el);
+  });
+  ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
+
+  // Animate each card from its old position
+  const newCards = ui.playerHandEl.children;
+  for (let i = 0; i < newCards.length && i < fromRects.length; i++) {
+    animateMove(newCards[i], fromRects[i]);
+  }
+}

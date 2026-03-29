@@ -276,6 +276,21 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
     opacity: 1;
   }
 }
+/* Move card animation — slides from one position to another */
+.card.move-card{
+  animation: move-to-position .4s cubic-bezier(0.22, 0.68, 0.35, 1) both;
+}
+@keyframes move-to-position{
+  0%{
+    transform: translate(var(--move-x, 0px), var(--move-y, 0px));
+    opacity: 0.85;
+  }
+  100%{
+    transform: translate(0, 0);
+    opacity: 1;
+  }
+}
+
 .shake{ animation: shake .25s ease-in-out 1 }
 @keyframes shake{
   0%{ transform: translateX(0) }
