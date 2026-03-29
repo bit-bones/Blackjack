@@ -71,6 +71,7 @@ export function setupKeyboardListeners(gameActions) {
 
     if (e.key === 'Escape') {
       if (!ui.hotkeysModal.classList.contains('hidden')) { ui.hotkeysModal.classList.add('hidden'); return; }
+      if (!ui.newRunModal.classList.contains('hidden')) { ui.newRunModal.classList.add('hidden'); return; }
       if (!ui.relicModal.classList.contains('hidden')) { gameActions.onSkipRelic(); return; }
       if (!ui.relicListModal.classList.contains('hidden')) { ui.relicListModal.classList.add('hidden'); return; }
       if (!ui.menuModal.classList.contains('hidden')) { ui.menuModal.classList.add('hidden'); return; }

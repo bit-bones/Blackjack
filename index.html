@@ -166,6 +166,41 @@
         <button id="menuHotkeysBtn">Hotkeys</button>
         <button id="menuResumeBtn" class="primary">Resume</button>
       </div>
+      <div id="menuSeedRow" class="seed-display">
+        <span class="seed-label">Seed:</span>
+        <code id="menuSeedValue" class="seed-value"></code>
+        <button id="copySeedBtn" class="seed-copy" title="Copy seed">📋</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- New Run Modal -->
+  <div id="newRunModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>New Run</h3>
+      <div class="new-run-options">
+        <div class="new-run-option">
+          <label class="toggle-label">
+            <span>Relics &amp; Stars</span>
+            <div class="toggle-switch">
+              <input type="checkbox" id="newRunRelicsToggle" checked>
+              <span class="toggle-slider"></span>
+            </div>
+          </label>
+          <p class="option-desc">Enable relics and stars for a roguelike experience, or disable for classic blackjack.</p>
+        </div>
+        <div class="new-run-option">
+          <label for="newRunSeed" class="option-label">Seeded Run</label>
+          <div class="seed-input-row">
+            <input type="text" id="newRunSeed" placeholder="Leave blank for random" maxlength="16" autocomplete="off" spellcheck="false">
+          </div>
+          <p class="option-desc">Enter a seed to replay a specific run.</p>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button id="newRunStartBtn" class="primary">Start Run</button>
+        <button id="newRunBackBtn" class="ghost">Back</button>
+      </div>
     </div>
   </div>
 

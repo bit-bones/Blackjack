@@ -1,4 +1,4 @@
-import { state, resetHandFlags, handTotal } from './state.js';
+import { state, resetHandFlags, handTotal, generateSeed, initRng } from './state.js';
 import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea } from './ui.js';
 import { onDeal, onHit, onStand, onSplit, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
@@ -6,6 +6,7 @@ import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
 
 function init() {
   state.minBet = 5;
+  if (!state.seed) initRng(generateSeed());
   updateTopbar();
   renderRelicsList();
   renderHands();
@@ -51,9 +52,22 @@ const gameActions = {
     else nextRound();
   },
   onMenuNewRun: () => {
-    ui.menuModal.classList.add("hidden"); ui.gameOverModal.classList.add("hidden");
+    ui.menuModal.classList.add("hidden");
+    ui.gameOverModal.classList.add("hidden");
+    ui.newRunSeedInput.value = "";
+    ui.newRunRelicsToggle.checked = true;
+    ui.newRunModal.classList.remove("hidden");
+  },
+  onNewRunStart: () => {
+    ui.newRunModal.classList.add("hidden");
+    const classicMode = !ui.newRunRelicsToggle.checked;
+    const seedInput = ui.newRunSeedInput.value.trim().toUpperCase();
+    const seed = seedInput || generateSeed();
+
     state.chips = INITIAL_CHIPS; state.bet = 25; state.minBet = 5; state.stars = 0; state.streak = 0;
     state.relics = []; state.cheated = false; state.flags.usedResurrectionThisRun = false;
+    state.classicMode = classicMode;
+    initRng(seed);
     // clear split state
     state.splitHands = []; state.splitBets = [];
     state.splitResults = [];
@@ -177,7 +191,15 @@ ui.menuNewRunBtn.addEventListener("click", gameActions.onMenuNewRun);
 ui.menuRelicsBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); switchRelicTab("current"); ui.relicListModal.classList.remove("hidden"); });
 ui.menuHotkeysBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); renderHotkeys(); ui.hotkeysModal.classList.remove("hidden"); });
 ui.menuResumeBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); });
-document.querySelector(".logo").addEventListener("click", () => { ui.menuModal.classList.remove("hidden"); });
+document.querySelector(".logo").addEventListener("click", () => {
+  ui.menuSeedValue.textContent = state.seed || "";
+  ui.menuModal.classList.remove("hidden");
+});
+ui.newRunStartBtn.addEventListener("click", gameActions.onNewRunStart);
+ui.newRunBackBtn.addEventListener("click", () => { ui.newRunModal.classList.add("hidden"); ui.menuModal.classList.remove("hidden"); });
+ui.copySeedBtn.addEventListener("click", () => {
+  navigator.clipboard.writeText(state.seed || "").then(() => toast("Seed copied!"));
+});
 ui.closeRelicListBtn.addEventListener("click", () => ui.relicListModal.classList.add("hidden"));
 ui.relicTabCurrent.addEventListener("click", () => switchRelicTab("current"));
 ui.relicTabAll.addEventListener("click", () => switchRelicTab("all"));

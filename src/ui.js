@@ -61,6 +61,14 @@ export const ui = {
   toastEl: $("#toast"),
   splitArea: $("#splitArea"),
   splitHandsContainer: $("#splitHandsContainer"),
+  newRunModal: $("#newRunModal"),
+  newRunRelicsToggle: $("#newRunRelicsToggle"),
+  newRunSeedInput: $("#newRunSeed"),
+  newRunStartBtn: $("#newRunStartBtn"),
+  newRunBackBtn: $("#newRunBackBtn"),
+  menuSeedRow: $("#menuSeedRow"),
+  menuSeedValue: $("#menuSeedValue"),
+  copySeedBtn: $("#copySeedBtn"),
 };
 
 export function createCardEl(card, faceDown = false) {
@@ -144,6 +152,14 @@ export function updateTopbar() {
   ui.betEl.textContent = state.bet;
   ui.streakEl.textContent = `${state.streak} 🔥`;  // Added flame emoji for win streak
   ui.starsEl.textContent = state.stars;
+  // Hide stars and streak in classic mode
+  const starsStat = ui.starsEl.closest(".stat");
+  const streakStat = ui.streakEl.closest(".stat");
+  if (starsStat) starsStat.style.display = state.classicMode ? "none" : "";
+  if (streakStat) streakStat.style.display = state.classicMode ? "none" : "";
+  // Hide min bet escalation display in classic mode
+  const minBetStat = ui.minBetEl.closest(".stat");
+  if (minBetStat) minBetStat.style.display = state.classicMode ? "none" : "";
   if (state.cheated) {
     ui.highScoreEl.innerHTML = '✗';
   } else {
@@ -224,6 +240,12 @@ export function setPhaseControls() {
 
 export function renderRelicsList() {
   ui.relicsContainer.innerHTML = "";
+  const relicsAside = document.querySelector("aside.relics");
+  if (state.classicMode) {
+    if (relicsAside) relicsAside.style.display = "none";
+    return;
+  }
+  if (relicsAside) relicsAside.style.display = "";
   state.relics.forEach(r => {
     const el = document.createElement("div");
     el.className = "relic";

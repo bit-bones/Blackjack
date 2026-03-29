@@ -402,9 +402,11 @@ export function endHand(outcome, opts = {}) {
   }
 
   state.chips += delta;
+  if (state.classicMode) starGain = 0;
   state.stars += starGain;
 
   let escalation = (outcome === "win" || outcome === "blackjack") ? 0 : 5;
+  if (state.classicMode) escalation = 0;
   if (hasRelic("big-winner") && outcome === "lose") escalation = 10;
   if (hasRelic("push-it") && outcome === "push") escalation = 0;
   if (hasRelic("cool-headed") && outcome === "lose" && opts.surrendered) escalation = 0;
@@ -563,6 +565,7 @@ export function pickRelic(rel) {
 }
 
 export function getRelicChoicesIfReady() {
+  if (state.classicMode) return [];
   if (state.stars < 3) return [];
   const notOwned = ALL_RELICS.filter(r => !state.relics.find(x => x.id === r.id));
   if (notOwned.length === 0) { state.stars = 0; updateTopbar(); return []; }
