@@ -17,7 +17,29 @@ export function drawTo(hand, hidden = false) {
   hand.push(card);
   const container = (hand === state.playerHand) ? ui.playerHandEl : ui.dealerHandEl;
   const el = createCardEl(card, hidden);
-  container.appendChild(el);
+
+  // Calculate animation offset from shoe to target position
+  const shoe = document.querySelector('.deck-stack');
+  if (shoe) {
+    const shoeRect = shoe.getBoundingClientRect();
+    // Append hidden to measure target position
+    el.style.visibility = 'hidden';
+    el.style.animation = 'none';
+    container.appendChild(el);
+    const cardRect = el.getBoundingClientRect();
+    const dx = shoeRect.left + shoeRect.width / 2 - (cardRect.left + cardRect.width / 2);
+    const dy = shoeRect.top + shoeRect.height / 2 - (cardRect.top + cardRect.height / 2);
+    el.style.setProperty('--deal-x', `${Math.round(dx)}px`);
+    el.style.setProperty('--deal-y', `${Math.round(dy)}px`);
+    // Trigger animation
+    el.style.removeProperty('visibility');
+    el.style.removeProperty('animation');
+    // Force reflow so animation replays
+    void el.offsetWidth;
+  } else {
+    container.appendChild(el);
+  }
+
   if (hand === state.playerHand) {
     ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
   } else {
@@ -44,26 +66,46 @@ export function startHand() {
   state.dealerHand = [];
   state.playerHand = [];
   setTotalsStyles(null);
-  showHint("Your move: Hit, Stand, Double, or Surrender.");
-
-  drawTo(state.playerHand);
-  drawTo(state.dealerHand);
-  drawTo(state.playerHand);
-  drawTo(state.dealerHand, true);
-
-  renderHands();
   setPhaseControls();
+  showHint("Dealing...");
 
-  const playerBJ = isBlackjack(state.playerHand);
-  const dealerBJ = isBlackjack(state.dealerHand);
+  ui.dealerHandEl.innerHTML = "";
+  ui.playerHandEl.innerHTML = "";
+  ui.dealerTotalEl.textContent = "Total: 0";
+  ui.playerTotalEl.textContent = "Total: 0";
 
-  if (playerBJ || dealerBJ) {
-    state.flags.dealerRevealed = true;
-    renderHands(true);
-    if (playerBJ && dealerBJ) endHand("push");
-    else if (playerBJ) endHand("blackjack");
-    else endHand("lose");
-  }
+  // Stagger the 4-card deal: player, dealer, player, dealer(hidden)
+  // Disable controls during deal animation
+  state.phase = "dealing";
+  const dealSteps = [
+    () => drawTo(state.playerHand),
+    () => drawTo(state.dealerHand),
+    () => drawTo(state.playerHand),
+    () => drawTo(state.dealerHand, true),
+  ];
+
+  const DELAY = 200; // ms between each card
+  dealSteps.forEach((step, i) => {
+    setTimeout(() => {
+      step();
+      // After last card, check for blackjack and enable controls
+      if (i === dealSteps.length - 1) {
+        state.phase = "player";
+        showHint("Your move: Hit, Stand, Double, or Surrender.");
+        setPhaseControls();
+
+        const playerBJ = isBlackjack(state.playerHand);
+        const dealerBJ = isBlackjack(state.dealerHand);
+        if (playerBJ || dealerBJ) {
+          state.flags.dealerRevealed = true;
+          renderHands(true);
+          if (playerBJ && dealerBJ) endHand("push");
+          else if (playerBJ) endHand("blackjack");
+          else endHand("lose");
+        }
+      }
+    }, i * DELAY);
+  });
 }
 
 export function onHit() {
