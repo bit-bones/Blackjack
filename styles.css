@@ -102,18 +102,7 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
   opacity: 0.4;
 }
 .split-hand-slot .hand {
-  min-height: 60px;
-}
-.split-hand-slot .hand .card {
-  width: 50px;
-  height: 70px;
-  margin-right: -30px;
-}
-.split-hand-slot .hand .card .rank { font-size: 12px; top: 4px; left: 5px; }
-.split-hand-slot .hand .card .suit { font-size: 10px; right: 5px; bottom: 4px; }
-.split-hand-slot .hand .card .pip { font-size: 18px; }
-.split-hand-slot .hand .card:last-child {
-  margin-right: 0;
+  min-height: 104px;
 }
 .split-hand-label {
   font-size: 10px;
@@ -767,10 +756,6 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   .deck-stack{ width: 42px; height: 56px; }
   .hand{ min-height: 76px; }
   .hand .card { margin-right: -26px; }
-  .split-hand-slot .hand .card { width: 42px; height: 56px; margin-right: -22px; }
-  .split-hand-slot .hand .card .rank { font-size: 10px; }
-  .split-hand-slot .hand .card .suit { font-size: 8px; }
-  .split-hand-slot .hand .card .pip { font-size: 16px; }
   .stat{ padding: 3px 5px; }
   .stat-label{ font-size: 10px; }
   .stat-value{ font-size: 11px; }

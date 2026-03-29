@@ -1,5 +1,5 @@
 import { state, handTotal, isBlackjack, hasRelic, getRelicHookValue, resetHandFlags, shuffleInPlace } from './state.js';
-import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList, renderSplitHands } from './ui.js';
+import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList, renderSplitHands, dealToSplitHand } from './ui.js';
 import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET } from './constants.js';
 
 export function newShuffledDeck() {
@@ -101,8 +101,8 @@ export function startHand() {
       if (i === dealSteps.length - 1) {
         state.phase = "player";
 
-        // Check for split eligibility (same rank pair)
-        if (state.playerHand[0].rank === state.playerHand[1].rank) {
+        // Check for split eligibility (same value pair)
+        if (state.playerHand[0].value === state.playerHand[1].value) {
           state.flags.canSplit = true;
         }
 
@@ -185,7 +185,7 @@ export function onSplit() {
   const totalHands = state.splitHandIndex + state.splitHands.length;
   if (totalHands >= 4) return;
   if (state.chips < state.bet) return;
-  if (state.playerHand.length !== 2 || state.playerHand[0].rank !== state.playerHand[1].rank) return;
+  if (state.playerHand.length !== 2 || state.playerHand[0].value !== state.playerHand[1].value) return;
 
   state.isSplitting = true;
   const isAces = state.playerHand[0].rank === "A";
@@ -221,17 +221,17 @@ export function onSplit() {
   setTimeout(() => {
     drawTo(state.playerHand);
     setTimeout(() => {
-      // Deal card to the new split hand
+      // Deal card to the new split hand with animation
       const splitIdx = state.splitHands.length - 1;
       const splitCard = state.deck.pop();
       state.splitHands[splitIdx].push(splitCard);
-      renderSplitHands();
+      dealToSplitHand(splitIdx, splitCard);
 
       state.phase = "player";
 
       // Check if we can re-split (new pair after the deal)
       const totalAfter = state.splitHandIndex + state.splitHands.length;
-      if (state.playerHand.length === 2 && state.playerHand[0].rank === state.playerHand[1].rank && totalAfter < 4) {
+      if (state.playerHand.length === 2 && state.playerHand[0].value === state.playerHand[1].value && totalAfter < 4) {
         state.flags.canSplit = true;
       }
       state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;

@@ -139,7 +139,7 @@ function transitionToSplitHand() {
 
   // Check for re-split eligibility
   const totalHands = state.splitHandIndex + state.splitHands.length;
-  if (state.playerHand.length === 2 && state.playerHand[0].rank === state.playerHand[1].rank && totalHands < 4) {
+  if (state.playerHand.length === 2 && state.playerHand[0].value === state.playerHand[1].value && totalHands < 4) {
     state.flags.canSplit = true;
   }
   state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;

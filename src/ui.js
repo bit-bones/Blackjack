@@ -231,7 +231,7 @@ export function renderRelicsList() {
   });
 }
 
-/** Render all waiting/settled split hands in the middle area */
+/** Render all waiting split hands in the middle area */
 export function renderSplitHands() {
   ui.splitHandsContainer.innerHTML = "";
   if (state.splitHands.length === 0) {
@@ -242,6 +242,7 @@ export function renderSplitHands() {
   state.splitHands.forEach((hand, i) => {
     const slot = document.createElement("div");
     slot.className = "split-hand-slot waiting";
+    slot.setAttribute("data-split-index", String(i));
 
     const label = document.createElement("div");
     label.className = "split-hand-label";
@@ -256,4 +257,31 @@ export function renderSplitHands() {
     slot.appendChild(handDiv);
     ui.splitHandsContainer.appendChild(slot);
   });
+}
+
+/** Deal a card from the shoe into a specific split hand slot with animation */
+export function dealToSplitHand(splitIndex, card) {
+  const slot = ui.splitHandsContainer.querySelector(`[data-split-index="${splitIndex}"]`);
+  if (!slot) return;
+  const handDiv = slot.querySelector(".hand");
+  if (!handDiv) return;
+
+  const el = createCardEl(card);
+  const shoe = document.querySelector('.deck-stack');
+  if (shoe) {
+    const shoeRect = shoe.getBoundingClientRect();
+    el.style.visibility = 'hidden';
+    el.style.animation = 'none';
+    handDiv.appendChild(el);
+    const cardRect = el.getBoundingClientRect();
+    const dx = shoeRect.left + shoeRect.width / 2 - (cardRect.left + cardRect.width / 2);
+    const dy = shoeRect.top + shoeRect.height / 2 - (cardRect.top + cardRect.height / 2);
+    el.style.setProperty('--deal-x', `${Math.round(dx)}px`);
+    el.style.setProperty('--deal-y', `${Math.round(dy)}px`);
+    el.style.removeProperty('visibility');
+    el.style.removeProperty('animation');
+    void el.offsetWidth;
+  } else {
+    handDiv.appendChild(el);
+  }
 }
