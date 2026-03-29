@@ -406,19 +406,19 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   /* -- Header: compact single row -- */
   .topbar{
     grid-template-columns: auto 1fr;
-    gap: 8px;
+    gap: 10px;
     margin-bottom: 6px;
     flex-shrink: 0;
   }
-  .branding{ gap: 8px; }
-  .title h1{ font-size: 15px; }
+  .branding{ gap: 10px; }
+  .title h1{ font-size: 17px; }
   .title p{ display: none; }
-  .logo{ width: 32px; height: 32px; font-size: 16px; border-radius: 8px; }
+  .logo{ width: 38px; height: 38px; font-size: 19px; border-radius: 10px; }
 
   .status{
     display: flex;
     flex-wrap: nowrap;
-    gap: 4px;
+    gap: 5px;
     overflow-x: auto;
     justify-content: flex-end;
     scrollbar-width: none;
@@ -426,13 +426,13 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   .status::-webkit-scrollbar{ display: none; }
   .stat{
     min-width: 0;
-    padding: 4px 6px;
+    padding: 5px 8px;
     text-align: center;
-    border-radius: 8px;
+    border-radius: 9px;
     flex-shrink: 0;
   }
-  .stat-label{ font-size: 9px; }
-  .stat-value{ font-size: 12px; margin-top: 1px; }
+  .stat-label{ font-size: 10px; }
+  .stat-value{ font-size: 13px; margin-top: 1px; }
 
   /* -- Table: fills remaining space -- */
   .table{
@@ -656,8 +656,10 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   .card .pip{ font-size: 16px; }
   .deck-stack{ width: 38px; height: 50px; }
   .hand{ min-height: 64px; }
-  .stat{ padding: 3px 5px; }
-  .stat-value{ font-size: 11px; }
+  .logo{ width: 34px; height: 34px; font-size: 17px; border-radius: 9px; }
+  .stat{ padding: 4px 6px; }
+  .stat-label{ font-size: 9px; }
+  .stat-value{ font-size: 12px; }
 }
 
 #menuModal .relic-choices {
