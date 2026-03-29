@@ -114,6 +114,27 @@ export function renderHands(revealDealer = false) {
   ui.playerTotalEl.textContent = `Total: ${playerT || 0}`;
 }
 
+/** Flip only the dealer's hidden card face-up without rebuilding any other cards */
+export function revealDealerCard() {
+  const hiddenEl = ui.dealerHandEl.children[1];
+  if (!hiddenEl || !hiddenEl.classList.contains('face-down')) return;
+
+  const card = state.dealerHand[1];
+  hiddenEl.classList.remove('face-down');
+  hiddenEl.classList.add('flip-reveal');
+
+  // Populate card content (rank/suit/pip) that was hidden
+  const rankEl = hiddenEl.querySelector('.rank');
+  const suitEl = hiddenEl.querySelector('.suit');
+  const pipEl = hiddenEl.querySelector('.pip');
+  if (rankEl) rankEl.textContent = card.rank;
+  if (suitEl) suitEl.textContent = card.suit;
+  if (pipEl) pipEl.textContent = card.suit;
+
+  // Update dealer total to show full hand
+  ui.dealerTotalEl.textContent = `Total: ${handTotal(state.dealerHand).total}`;
+}
+
 export function updateTopbar() {
   ui.minBetEl.textContent = state.minBet;
   ui.chipsEl.textContent = state.chips;

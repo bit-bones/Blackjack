@@ -191,6 +191,17 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 .card.face-down .pip{ display: none; }
 .card.glow{ box-shadow: 0 0 0 2px var(--accent), 0 18px 22px rgba(0,0,0,0.4) }
 
+/* Flip-reveal animation for dealer's hidden card */
+.card.flip-reveal{
+  animation: card-flip .45s ease-in-out both;
+}
+@keyframes card-flip{
+  0%{ transform: scaleX(1); }
+  50%{ transform: scaleX(0); }
+  51%{ transform: scaleX(0); }
+  100%{ transform: scaleX(1); }
+}
+
 .card.deal-in{
   animation: deal-from-deck .4s cubic-bezier(0.22, 0.68, 0.35, 1) both;
 }

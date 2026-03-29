@@ -1,5 +1,5 @@
 import { state, handTotal, isBlackjack, hasRelic, getRelicHookValue, resetHandFlags, shuffleInPlace } from './state.js';
-import { ui, renderHands, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList } from './ui.js';
+import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList } from './ui.js';
 import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET } from './constants.js';
 
 export function newShuffledDeck() {
@@ -171,7 +171,7 @@ function standOrBust() {
   }
   state.phase = "dealer";
   state.flags.dealerRevealed = true;
-  renderHands(true);
+  revealDealerCard();
   showHint("Dealer plays...");
   setPhaseControls();
   setTimeout(dealerPlay, 450);
@@ -328,7 +328,7 @@ export function endHand(outcome, opts = {}) {
 
   state.pendingGameOver = state.chips < state.minBet;
   updateTopbar();
-  renderHands(true);
+  revealDealerCard();
   showHint(info);
   state.lastOutcome = outcome;
   state.lastInfo = info;

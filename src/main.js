@@ -61,8 +61,15 @@ const gameActions = {
   },
   onDouble: () => {
     if (state.phase !== "player" || state.chips < state.bet) return;
+    state.phase = "animating";
     state.chips -= state.bet; state.bet *= 2; updateTopbar();
-    import('./actions.js').then(m => { m.drawTo(state.playerHand); gameActions.onStand(); });
+    import('./actions.js').then(m => {
+      m.drawTo(state.playerHand);
+      setTimeout(() => {
+        state.phase = "player";
+        gameActions.onStand();
+      }, 450);
+    });
   },
   onSurrender: () => {
     const refund = Math.floor(state.bet * (state.relics.find(r => r.id === "cool-headed") ? 0.75 : 0.5));
