@@ -455,26 +455,36 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
     flex-direction: column;
     justify-content: space-between;
     overflow: hidden;
+    position: relative;
   }
-  .dealer-area{ padding: 4px 4px 6px; margin-top: 2px; }
+  .dealer-area{ padding: 6px 6px 8px; margin-top: 4px; }
   .player-area{
     position: static;
-    padding: 4px 4px 6px;
+    padding: 6px 6px 8px;
   }
 
-  .hand{ gap: 6px; min-height: 72px; }
-  .hand-row{ gap: 6px; }
-  .card{ width: 52px; height: 74px; border-radius: 7px; }
-  .card .rank{ top: 3px; left: 4px; font-size: 12px; }
-  .card .suit{ right: 4px; bottom: 3px; font-size: 10px; }
-  .card .pip{ font-size: 20px; }
-  .total{ padding: 4px 8px; font-size: 12px; border-radius: 7px; }
-  .role{ font-size: 10px; }
+  .hand{ gap: 8px; min-height: 90px; }
+  .hand-row{ gap: 8px; }
+  .card{ width: 62px; height: 88px; border-radius: 8px; }
+  .card .rank{ top: 5px; left: 6px; font-size: 14px; }
+  .card .suit{ right: 6px; bottom: 5px; font-size: 12px; }
+  .card .pip{ font-size: 24px; }
+  .total{ padding: 6px 10px; font-size: 13px; border-radius: 8px; }
+  .role{ font-size: 11px; }
 
-  /* Shoe: tight & small */
-  .shoe{ position: static; transform: none; align-self: center; flex-shrink: 0; padding: 4px 0; }
-  .deck-stack{ width: 44px; height: 58px; }
-  .shoe-label{ font-size: 9px; }
+  /* Shoe: positioned right like desktop */
+  .shoe{
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    left: auto;
+    transform: translateY(-50%);
+    align-self: auto;
+    flex-shrink: 0;
+    padding: 0;
+  }
+  .deck-stack{ width: 50px; height: 66px; }
+  .shoe-label{ font-size: 10px; }
 
   /* -- Relics: hidden on mobile (accessible via menu) -- */
   .relics{ display: none; }
@@ -651,16 +661,15 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 
 /* Very small screens (iPhone SE, etc.) */
 @media (max-width: 380px){
-  .card{ width: 44px; height: 64px; }
-  .card .rank{ font-size: 10px; top: 2px; left: 3px; }
-  .card .suit{ font-size: 9px; right: 3px; bottom: 2px; }
-  .card .pip{ font-size: 16px; }
-  .deck-stack{ width: 38px; height: 50px; }
-  .hand{ min-height: 64px; }
-  .logo{ width: 38px; height: 38px; font-size: 19px; border-radius: 10px; }
-  .stat{ padding: 5px 7px; }
+  .card{ width: 52px; height: 74px; }
+  .card .rank{ font-size: 12px; top: 4px; left: 5px; }
+  .card .suit{ font-size: 10px; right: 5px; bottom: 4px; }
+  .card .pip{ font-size: 20px; }
+  .deck-stack{ width: 42px; height: 56px; }
+  .hand{ min-height: 76px; }
+  .stat{ padding: 3px 5px; }
   .stat-label{ font-size: 10px; }
-  .stat-value{ font-size: 13px; }
+  .stat-value{ font-size: 11px; }
 }
 
 #menuModal .relic-choices {
