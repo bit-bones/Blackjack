@@ -65,7 +65,7 @@ const gameActions = {
     import('./actions.js').then(m => { m.drawTo(state.playerHand); gameActions.onStand(); });
   },
   onSurrender: () => {
-    const refund = Math.floor(state.bet * (state.relics.find(r => r.id === "cool-headed") ? 0.6 : 0.5));
+    const refund = Math.floor(state.bet * (state.relics.find(r => r.id === "cool-headed") ? 0.75 : 0.5));
     state.chips += refund; updateTopbar(); endHand("lose", { surrendered: true });
   },
   onPeek: () => {

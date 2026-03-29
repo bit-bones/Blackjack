@@ -190,7 +190,7 @@ export function endHand(outcome, opts = {}) {
     if (!hasRelic("push-it")) state.streak = 0;
   } else if (outcome === "lose") {
     info = opts.surrendered ? "Surrender" : "Lose";
-    state.streak = 0;
+    if (opts.surrendered && hasRelic("cool-headed")) { /* keep streak */ } else { state.streak = 0; }
   }
 
   if ((outcome === "win" || outcome === "blackjack") && hasRelic("risky-gain") && state.isAllIn) starGain += 1;
@@ -211,6 +211,7 @@ export function endHand(outcome, opts = {}) {
   let escalation = (outcome === "win" || outcome === "blackjack") ? 0 : 5;
   if (hasRelic("big-winner") && outcome === "lose") escalation = 10;
   if (hasRelic("push-it") && outcome === "push") escalation = 0;
+  if (hasRelic("cool-headed") && outcome === "lose" && opts.surrendered) escalation = 0;
   state.minBet += escalation;
   if (hasRelic("big-winner") && (outcome === "win" || outcome === "blackjack") && state.streak > 1) {
     state.minBet -= (state.streak - 1) * 5;

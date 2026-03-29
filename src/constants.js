@@ -68,8 +68,8 @@ export const ALL_RELICS = [
     id: "cool-headed",
     name: "Cool-Headed",
     icon: "🧊",
-    desc: "Surrender refunds 60% of your bet (instead of 50%).",
-    hooks: { surrenderRefund: 0.6 }
+    desc: "Surrender refunds 75% of your bet (instead of 50%) and no longer raises the minimum bet or resets your win streak.",
+    hooks: { surrenderRefund: 0.75 }
   },
   {
     id: "risky-gain",
