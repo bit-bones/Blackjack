@@ -82,6 +82,7 @@ export const state = {
   lastHandNetLoss: 0,
   lastHandNetResult: null,
   lastResultLabel: null,
+  splitHandResults: [],
   chipsBeforeHand: 0,
 
   isAllIn: false,

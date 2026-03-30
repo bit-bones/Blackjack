@@ -248,10 +248,35 @@ export function setPhaseControls() {
 
     // Show last result during betting
     if (state.lastHandNetResult !== null && state.showLastResult) {
+      ui.lastResultEl.innerHTML = "";
+
+      if (state.splitHandResults.length > 1) {
+        // Multi-hand split display
+        state.splitHandResults.forEach(h => {
+          const line = document.createElement("div");
+          const sign = h.delta >= 0 ? "+" : "";
+          line.textContent = `${h.label} ${sign}${h.delta}`;
+          line.className = h.delta > 0 ? "lr-gain" : h.delta < 0 ? "lr-loss" : "lr-even";
+          ui.lastResultEl.appendChild(line);
+        });
+        const sep = document.createElement("div");
+        sep.className = "lr-sep";
+        ui.lastResultEl.appendChild(sep);
+        const total = document.createElement("div");
+        const r = state.lastHandNetResult;
+        const sign = r >= 0 ? "+" : "";
+        total.textContent = `${sign}${r} chips`;
+        total.className = r > 0 ? "lr-gain" : r < 0 ? "lr-loss" : "lr-even";
+        ui.lastResultEl.appendChild(total);
+      } else {
+        // Single hand display
+        const r = state.lastHandNetResult;
+        const sign = r >= 0 ? "+" : "";
+        const label = state.lastResultLabel || (r > 0 ? "Win" : r < 0 ? "Lose" : "Push");
+        ui.lastResultEl.textContent = `${label} ${sign}${r} chips`;
+      }
+
       const r = state.lastHandNetResult;
-      const sign = r >= 0 ? "+" : "";
-      const label = state.lastResultLabel || (r > 0 ? "Win" : r < 0 ? "Lose" : "Push");
-      ui.lastResultEl.textContent = `${label} ${sign}${r} chips`;
       ui.lastResultEl.className = "last-result " + (r > 0 ? "result-gain" : r < 0 ? "result-loss" : "result-even");
       ui.lastResultEl.style.display = "";
     } else {

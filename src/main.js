@@ -34,12 +34,18 @@ const gameActions = {
     state.lastHandNetLoss = Math.max(0, -state.lastHandNetResult);
 
     // Determine label for last-result display
-    if (state.lastHandNetResult > 0) {
-      state.lastResultLabel = "Win";
-    } else if (state.lastHandNetResult < 0) {
-      state.lastResultLabel = state.lastInfo.startsWith("Surrender") ? "Surrender" : "Lose";
+    if (!state.isSplitting || state.splitHandResults.length <= 1) {
+      // Single hand — use simple label
+      if (state.lastHandNetResult > 0) {
+        state.lastResultLabel = "Win";
+      } else if (state.lastHandNetResult < 0) {
+        state.lastResultLabel = state.lastInfo.startsWith("Surrender") ? "Surrender" : "Lose";
+      } else {
+        state.lastResultLabel = "Push";
+      }
     } else {
-      state.lastResultLabel = "Push";
+      // Split hands — label will be derived from splitHandResults in UI
+      state.lastResultLabel = null;
     }
 
     // Clean up split state after all hands settled
@@ -80,7 +86,7 @@ const gameActions = {
 
     state.chips = INITIAL_CHIPS; state.bet = 25; state.minBet = 5; state.stars = 0; state.streak = 0;
     state.relics = []; state.cheated = false; state.flags.usedResurrectionThisRun = false;
-    state.lastHandNetLoss = 0; state.lastHandNetResult = null; state.lastResultLabel = null; state.chipsBeforeHand = 0;
+    state.lastHandNetLoss = 0; state.lastHandNetResult = null; state.lastResultLabel = null; state.splitHandResults = []; state.chipsBeforeHand = 0;
     state.classicMode = classicMode;
     initRng(seed);
     // clear split state

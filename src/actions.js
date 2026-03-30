@@ -69,6 +69,7 @@ export function startHand() {
   state.splitHands = [];
   state.splitBets = [];
   state.splitResults = [];
+  state.splitHandResults = [];
   state.isSplitting = false;
   state.splitHandIndex = 1;
   state.splitFromAces = false;
@@ -340,6 +341,7 @@ function settle() {
 }
 
 export function endHand(outcome, opts = {}) {
+  state._chipsBeforeSubHand = state.chips;
   state.phase = "payout";
   setTotalsStyles(outcome);
   setPhaseControls();
@@ -410,6 +412,16 @@ export function endHand(outcome, opts = {}) {
   }
 
   state.chips += delta;
+
+  // Track per-hand result for split display
+  const handDelta = state.chips - (state._chipsBeforeSubHand || 0);
+  const handLabel = (outcome === "blackjack" || outcome === "win") ? "Win"
+    : outcome === "push" ? "Push"
+    : (opts.surrendered ? "Surrender" : "Lose");
+  if (state.isSplitting) {
+    state.splitHandResults.push({ label: handLabel, delta: handDelta });
+  }
+
   if (state.classicMode) starGain = 0;
   state.stars += starGain;
 
