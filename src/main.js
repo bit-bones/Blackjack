@@ -29,8 +29,9 @@ const gameActions = {
       return;
     }
 
-    // All hands settled — compute net loss for Martingale Master
-    state.lastHandNetLoss = Math.max(0, state.chipsBeforeHand - state.chips);
+    // All hands settled — compute net result and net loss for Martingale Master
+    state.lastHandNetResult = state.chips - state.chipsBeforeHand;
+    state.lastHandNetLoss = Math.max(0, -state.lastHandNetResult);
 
     // Clean up split state after all hands settled
     if (state.isSplitting) {
@@ -70,7 +71,7 @@ const gameActions = {
 
     state.chips = INITIAL_CHIPS; state.bet = 25; state.minBet = 5; state.stars = 0; state.streak = 0;
     state.relics = []; state.cheated = false; state.flags.usedResurrectionThisRun = false;
-    state.lastHandNetLoss = 0; state.chipsBeforeHand = 0;
+    state.lastHandNetLoss = 0; state.lastHandNetResult = null; state.chipsBeforeHand = 0;
     state.classicMode = classicMode;
     initRng(seed);
     // clear split state

@@ -49,6 +49,10 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
 .dealer-area, .player-area{ padding: 8px 8px 12px; }
 .dealer-area{ margin-top: 6px; }
 .player-area{ position: absolute; left: 18px; right: 18px; bottom: 18px; }
+.last-result{ text-align: center; font-size: 15px; font-weight: 600; letter-spacing: .3px; padding: 4px 0; }
+.last-result.result-gain{ color: var(--success, #4caf50); }
+.last-result.result-loss{ color: var(--danger, #ef5350); }
+.last-result.result-even{ color: #aaa; }
 .hand-row{ display:flex; align-items: center; justify-content: space-between; gap:12px}
 /* Overlapping card layout — cards slide together as more are added */
 .hand{

@@ -80,6 +80,7 @@ export const state = {
   pendingGameOver: false,
 
   lastHandNetLoss: 0,
+  lastHandNetResult: null,
   chipsBeforeHand: 0,
 
   isAllIn: false,

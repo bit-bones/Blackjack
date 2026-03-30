@@ -61,6 +61,7 @@ export const ui = {
   toastEl: $("#toast"),
   splitArea: $("#splitArea"),
   splitHandsContainer: $("#splitHandsContainer"),
+  lastResultEl: $("#lastResult"),
   newRunModal: $("#newRunModal"),
   newRunRelicsToggle: $("#newRunRelicsToggle"),
   newRunSeedInput: $("#newRunSeed"),
@@ -244,7 +245,19 @@ export function setPhaseControls() {
     ui.betRange.disabled = false;
     $$(".pill").forEach(b => b.disabled = false);
 
+    // Show last result during betting
+    if (state.lastHandNetResult !== null) {
+      const r = state.lastHandNetResult;
+      const sign = r >= 0 ? "+" : "";
+      ui.lastResultEl.textContent = `Last Result: ${sign}${r} chips`;
+      ui.lastResultEl.className = "last-result " + (r > 0 ? "result-gain" : r < 0 ? "result-loss" : "result-even");
+      ui.lastResultEl.style.display = "";
+    } else {
+      ui.lastResultEl.style.display = "none";
+    }
+
   } else if (state.phase === "player") {
+    ui.lastResultEl.style.display = "none";
     ui.dealBtn.disabled = true;
     ui.betRange.disabled = true;
     $$(".pill").forEach(b => b.disabled = true);
@@ -265,6 +278,7 @@ export function setPhaseControls() {
     ui.peekBtn.disabled = !(hasPeek && !state.flags.usedPeekThisHand);
     ui.peekBtn.style.display = hasPeek ? "inline-block" : "none";
   } else {
+    ui.lastResultEl.style.display = "none";
     ui.dealBtn.disabled = true;
     ui.betRange.disabled = true;
     $$(".pill").forEach(b => b.disabled = true);
