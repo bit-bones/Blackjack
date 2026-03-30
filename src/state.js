@@ -79,6 +79,9 @@ export const state = {
   lastInfo: "",
   pendingGameOver: false,
 
+  lastHandNetLoss: 0,
+  chipsBeforeHand: 0,
+
   isAllIn: false,
   lastWinDelta: 0,
 

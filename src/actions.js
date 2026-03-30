@@ -52,6 +52,7 @@ export function onDeal() {
   state.bet = wager;
   state.previousBet = wager;
   state.isAllIn = (wager === state.chips);
+  state.chipsBeforeHand = state.chips;
   state.chips -= wager;
   updateTopbar();
   startHand();
@@ -363,9 +364,15 @@ export function endHand(outcome, opts = {}) {
     if (endBonus) { state.chips += endBonus; totalShown += endBonus; info += ` +${endBonus}💧`; }
     state.lastWinDelta = totalShown;
   } else if (outcome === "win") {
+    const martingaleActive = hasRelic("martingale-master") && state.lastHandNetLoss > 0 && state.bet >= 2 * state.lastHandNetLoss;
     let baseWin = state.bet;
     let totalShown = baseWin;
     let infoParts = [`Win +${baseWin}🪙`];
+    if (martingaleActive) {
+      const martingaleBonus = Math.floor(state.bet * 0.5);
+      totalShown += martingaleBonus;
+      infoParts.push(`+${martingaleBonus}📈`);
+    }
     if (hasRelic("momentum") && state.streak >= 2) {
       const b = Math.floor(state.bet * getRelicHookValue("streakWinBoost", 0.25));
       totalShown += b; infoParts.push(`+${b}⚡`);

@@ -110,5 +110,11 @@ export const ALL_RELICS = [
     name: "Big Winner",
     icon: "🏆",
     desc: "Wins past 1 streak reduce min bet by (streak-1)*5. Losses increase min bet by 10."
+  },
+  {
+    id: "martingale-master",
+    name: "Martingale Master",
+    icon: "📈",
+    desc: "A winning hand with a bet of at least double that of your previous lost bet, pays 3:2 instead of 1:1."
   }
 ];
