@@ -49,7 +49,7 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
 .dealer-area, .player-area{ padding: 8px 8px 12px; }
 .dealer-area{ margin-top: 6px; }
 .player-area{ position: absolute; left: 18px; right: 18px; bottom: 18px; }
-.last-result{ text-align: center; font-size: 15px; font-weight: 600; letter-spacing: .3px; padding: 4px 0; }
+.last-result{ position: absolute; bottom: 6px; left: 12px; font-size: 11px; font-weight: 600; letter-spacing: .3px; opacity: .85; }
 .last-result.result-gain{ color: var(--success, #4caf50); }
 .last-result.result-loss{ color: var(--danger, #ef5350); }
 .last-result.result-even{ color: #aaa; }
@@ -1015,4 +1015,32 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 }
 #unitSizeInput:focus {
   border-color: var(--primary);
+}
+.toggle-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: #111a2f;
+  border: 1px solid #1c2a4d;
+  border-radius: 10px;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.toggle-option input[type="checkbox"] {
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.toggle-label {
+  font-weight: 600;
+  font-size: 14px;
+}
+.toggle-desc {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 2px;
 }

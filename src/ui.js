@@ -74,6 +74,7 @@ export const ui = {
   optionsModal: $("#optionsModal"),
   unitSizeRow: $("#unitSizeRow"),
   unitSizeInput: $("#unitSizeInput"),
+  showLastResultToggle: $("#showLastResultToggle"),
   closeOptionsBtn: $("#closeOptionsBtn"),
 };
 
@@ -246,10 +247,11 @@ export function setPhaseControls() {
     $$(".pill").forEach(b => b.disabled = false);
 
     // Show last result during betting
-    if (state.lastHandNetResult !== null) {
+    if (state.lastHandNetResult !== null && state.showLastResult) {
       const r = state.lastHandNetResult;
       const sign = r >= 0 ? "+" : "";
-      ui.lastResultEl.textContent = `Last Result: ${sign}${r} chips`;
+      const label = state.lastResultLabel || (r > 0 ? "Win" : r < 0 ? "Lose" : "Push");
+      ui.lastResultEl.textContent = `${label} ${sign}${r} chips`;
       ui.lastResultEl.className = "last-result " + (r > 0 ? "result-gain" : r < 0 ? "result-loss" : "result-even");
       ui.lastResultEl.style.display = "";
     } else {

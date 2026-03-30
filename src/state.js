@@ -81,6 +81,7 @@ export const state = {
 
   lastHandNetLoss: 0,
   lastHandNetResult: null,
+  lastResultLabel: null,
   chipsBeforeHand: 0,
 
   isAllIn: false,
@@ -92,6 +93,7 @@ export const state = {
   bettingStyle: "total-chips",  // "total-chips" | "previous-bet" | "units"
   previousBet: 0,
   unitSize: 10,
+  showLastResult: true,
 };
 
 export function handTotal(hand) {

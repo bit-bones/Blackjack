@@ -33,6 +33,15 @@ const gameActions = {
     state.lastHandNetResult = state.chips - state.chipsBeforeHand;
     state.lastHandNetLoss = Math.max(0, -state.lastHandNetResult);
 
+    // Determine label for last-result display
+    if (state.lastHandNetResult > 0) {
+      state.lastResultLabel = "Win";
+    } else if (state.lastHandNetResult < 0) {
+      state.lastResultLabel = state.lastInfo.startsWith("Surrender") ? "Surrender" : "Lose";
+    } else {
+      state.lastResultLabel = "Push";
+    }
+
     // Clean up split state after all hands settled
     if (state.isSplitting) {
       state.isSplitting = false;
@@ -71,7 +80,7 @@ const gameActions = {
 
     state.chips = INITIAL_CHIPS; state.bet = 25; state.minBet = 5; state.stars = 0; state.streak = 0;
     state.relics = []; state.cheated = false; state.flags.usedResurrectionThisRun = false;
-    state.lastHandNetLoss = 0; state.lastHandNetResult = null; state.chipsBeforeHand = 0;
+    state.lastHandNetLoss = 0; state.lastHandNetResult = null; state.lastResultLabel = null; state.chipsBeforeHand = 0;
     state.classicMode = classicMode;
     initRng(seed);
     // clear split state
@@ -245,6 +254,7 @@ ui.menuOptionsBtn.addEventListener("click", () => {
   radios.forEach(r => { r.checked = r.value === state.bettingStyle; });
   ui.unitSizeInput.value = state.unitSize;
   ui.unitSizeRow.style.display = state.bettingStyle === "units" ? "" : "none";
+  ui.showLastResultToggle.checked = state.showLastResult;
   ui.optionsModal.classList.remove("hidden");
 });
 document.querySelectorAll('input[name="bettingStyle"]').forEach(radio => {
@@ -262,6 +272,10 @@ ui.unitSizeInput.addEventListener("change", () => {
   } else {
     ui.unitSizeInput.value = state.unitSize;
   }
+});
+ui.showLastResultToggle.addEventListener("change", () => {
+  state.showLastResult = ui.showLastResultToggle.checked;
+  setPhaseControls();
 });
 ui.closeOptionsBtn.addEventListener("click", () => {
   ui.optionsModal.classList.add("hidden");

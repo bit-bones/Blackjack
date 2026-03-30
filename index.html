@@ -68,12 +68,12 @@
 
         <div class="player-area">
           <div class="role">You</div>
-          <div id="lastResult" class="last-result" style="display:none"></div>
           <div class="hand-row">
             <div id="player-hand" class="hand"></div>
             <div id="player-total" class="total">Total: 0</div>
           </div>
         </div>
+        <div id="lastResult" class="last-result" style="display:none"></div>
       </section>
 
       <div class="controls">
@@ -271,6 +271,14 @@
             <label for="unitSizeInput" class="unit-label">Unit Size</label>
             <input type="number" id="unitSizeInput" min="1" max="1000" value="10" autocomplete="off">
           </div>
+        </div>
+        <div class="option-group">
+          <div class="option-group-label">Display</div>
+          <label class="toggle-option">
+            <input type="checkbox" id="showLastResultToggle" checked>
+            <span class="toggle-label">Last Result</span>
+            <span class="toggle-desc">Show a chip gain/loss summary from the previous hand during betting.</span>
+          </label>
         </div>
       </div>
       <div class="modal-buttons">
