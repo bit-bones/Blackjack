@@ -69,7 +69,40 @@ export const ui = {
   menuSeedRow: $("#menuSeedRow"),
   menuSeedValue: $("#menuSeedValue"),
   copySeedBtn: $("#copySeedBtn"),
+  menuOptionsBtn: $("#menuOptionsBtn"),
+  optionsModal: $("#optionsModal"),
+  unitSizeRow: $("#unitSizeRow"),
+  unitSizeInput: $("#unitSizeInput"),
+  closeOptionsBtn: $("#closeOptionsBtn"),
 };
+
+export function updateBetButtons() {
+  const pills = document.querySelectorAll('.pill');
+  if (pills.length < 3) return;
+  if (state.bettingStyle === 'previous-bet') {
+    pills[0].textContent = '½×';
+    pills[1].textContent = 'Same';
+    pills[2].textContent = '2×';
+    pills[0].setAttribute('data-bet', 'prevHalf');
+    pills[1].setAttribute('data-bet', 'prevSame');
+    pills[2].setAttribute('data-bet', 'prevDouble');
+  } else if (state.bettingStyle === 'units') {
+    const u = state.unitSize;
+    pills[0].textContent = `−${u}`;
+    pills[1].textContent = `${u}`;
+    pills[2].textContent = `+${u}`;
+    pills[0].setAttribute('data-bet', 'unitMinus');
+    pills[1].setAttribute('data-bet', 'unitSet');
+    pills[2].setAttribute('data-bet', 'unitPlus');
+  } else {
+    pills[0].textContent = 'Min';
+    pills[1].textContent = 'Half';
+    pills[2].textContent = 'All-in';
+    pills[0].setAttribute('data-bet', 'min');
+    pills[1].setAttribute('data-bet', 'half');
+    pills[2].setAttribute('data-bet', 'allin');
+  }
+}
 
 export function createCardEl(card, faceDown = false) {
   const el = document.createElement("div");

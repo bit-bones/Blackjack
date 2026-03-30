@@ -50,6 +50,7 @@ export function onDeal() {
   const wager = Math.max(state.minBet, Math.min(state.bet, Math.min(state.chips, MAX_BET)));
   if (wager < state.minBet || wager > state.chips) return;
   state.bet = wager;
+  state.previousBet = wager;
   state.isAllIn = (wager === state.chips);
   state.chips -= wager;
   updateTopbar();

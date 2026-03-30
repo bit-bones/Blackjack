@@ -164,6 +164,7 @@
         <button id="menuNewRunBtn">New Run</button>
         <button id="menuRelicsBtn">Relics</button>
         <button id="menuHotkeysBtn">Hotkeys</button>
+        <button id="menuOptionsBtn">Options</button>
         <button id="menuResumeBtn" class="primary">Resume</button>
       </div>
       <div id="menuSeedRow" class="seed-display">
@@ -230,6 +231,49 @@
       <div class="modal-buttons">
         <button id="resetHotkeysBtn" class="ghost">Reset Defaults</button>
         <button id="closeHotkeysBtn" class="primary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Options Modal -->
+  <div id="optionsModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Options</h3>
+      <div class="options-list">
+        <div class="option-group">
+          <div class="option-group-label">Betting Style</div>
+          <p class="option-desc">Choose how the quick-bet buttons below the slider behave.</p>
+          <div class="radio-options">
+            <label class="radio-option">
+              <input type="radio" name="bettingStyle" value="total-chips" checked>
+              <div class="radio-content">
+                <span class="radio-name">Total Chips Relative</span>
+                <span class="radio-desc">Min • Half • All-in</span>
+              </div>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="bettingStyle" value="previous-bet">
+              <div class="radio-content">
+                <span class="radio-name">Previous Bet Relative</span>
+                <span class="radio-desc">Half • Same • Double</span>
+              </div>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="bettingStyle" value="units">
+              <div class="radio-content">
+                <span class="radio-name">Units</span>
+                <span class="radio-desc">−Unit • Unit • +Unit</span>
+              </div>
+            </label>
+          </div>
+          <div id="unitSizeRow" class="unit-size-row" style="display:none">
+            <label for="unitSizeInput" class="unit-label">Unit Size</label>
+            <input type="number" id="unitSizeInput" min="1" max="1000" value="10" autocomplete="off">
+          </div>
+        </div>
+      </div>
+      <div class="modal-buttons">
+        <button id="closeOptionsBtn" class="primary">Close</button>
       </div>
     </div>
   </div>

@@ -83,6 +83,11 @@ export const state = {
   lastWinDelta: 0,
 
   cheated: false,
+
+  // Betting style options
+  bettingStyle: "total-chips",  // "total-chips" | "previous-bet" | "units"
+  previousBet: 0,
+  unitSize: 10,
 };
 
 export function handTotal(hand) {

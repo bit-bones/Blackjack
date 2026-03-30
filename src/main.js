@@ -1,5 +1,5 @@
 import { state, resetHandFlags, handTotal, generateSeed, initRng } from './state.js';
-import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea } from './ui.js';
+import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea, updateBetButtons } from './ui.js';
 import { onDeal, onHit, onStand, onSplit, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
@@ -12,6 +12,7 @@ function init() {
   renderHands();
   state.phase = "betting";
   setPhaseControls();
+  updateBetButtons();
   showHint("Place your bet and press Deal.");
 }
 
@@ -90,10 +91,30 @@ const gameActions = {
     setPhaseControls(); showHint("New run! Adjust bet and press Deal.");
   },
   quickBet: (type) => {
-    if (type === "min") state.bet = Math.min(state.minBet, state.chips);
-    else if (type === "half") state.bet = Math.max(state.minBet, Math.floor(state.chips / 2));
-    else if (type === "allin") state.bet = Math.max(state.minBet, state.chips);
-    state.bet = Math.max(state.minBet, Math.min(state.bet, Math.min(MAX_BET, state.chips)));
+    const maxBet = Math.min(MAX_BET, state.chips);
+    if (type === "min") {
+      state.bet = Math.min(state.minBet, state.chips);
+    } else if (type === "half") {
+      state.bet = Math.max(state.minBet, Math.floor(state.chips / 2));
+    } else if (type === "allin") {
+      state.bet = Math.max(state.minBet, state.chips);
+    } else if (type === "prevHalf") {
+      if (state.previousBet <= 0) return;
+      state.bet = Math.max(state.minBet, Math.floor(state.previousBet / 2));
+    } else if (type === "prevSame") {
+      if (state.previousBet <= 0) return;
+      state.bet = state.previousBet;
+    } else if (type === "prevDouble") {
+      if (state.previousBet <= 0) return;
+      state.bet = state.previousBet * 2;
+    } else if (type === "unitMinus") {
+      state.bet = Math.max(state.minBet, state.bet - state.unitSize);
+    } else if (type === "unitSet") {
+      state.bet = state.unitSize;
+    } else if (type === "unitPlus") {
+      state.bet = state.bet + state.unitSize;
+    }
+    state.bet = Math.max(state.minBet, Math.min(state.bet, maxBet));
     updateTopbar(); setPhaseControls();
   },
   onDouble: () => {
@@ -209,6 +230,36 @@ ui.betRange.addEventListener("input", () => { state.bet = Number(ui.betRange.val
 
 document.querySelectorAll(".pill").forEach(btn => {
   btn.addEventListener("click", () => gameActions.quickBet(btn.getAttribute("data-bet")));
+});
+
+// Options modal wiring
+ui.menuOptionsBtn.addEventListener("click", () => {
+  ui.menuModal.classList.add("hidden");
+  // Sync radio buttons with current state
+  const radios = document.querySelectorAll('input[name="bettingStyle"]');
+  radios.forEach(r => { r.checked = r.value === state.bettingStyle; });
+  ui.unitSizeInput.value = state.unitSize;
+  ui.unitSizeRow.style.display = state.bettingStyle === "units" ? "" : "none";
+  ui.optionsModal.classList.remove("hidden");
+});
+document.querySelectorAll('input[name="bettingStyle"]').forEach(radio => {
+  radio.addEventListener("change", (e) => {
+    state.bettingStyle = e.target.value;
+    ui.unitSizeRow.style.display = state.bettingStyle === "units" ? "" : "none";
+    updateBetButtons();
+  });
+});
+ui.unitSizeInput.addEventListener("change", () => {
+  const val = parseInt(ui.unitSizeInput.value, 10);
+  if (val > 0) {
+    state.unitSize = val;
+    updateBetButtons();
+  } else {
+    ui.unitSizeInput.value = state.unitSize;
+  }
+});
+ui.closeOptionsBtn.addEventListener("click", () => {
+  ui.optionsModal.classList.add("hidden");
 });
 
 function renderAllRelicsList() {

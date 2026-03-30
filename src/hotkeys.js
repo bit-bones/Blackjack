@@ -70,6 +70,7 @@ export function setupKeyboardListeners(gameActions) {
     const isSpaceOrEnter = (e.key === 'Enter' || e.key === ' ');
 
     if (e.key === 'Escape') {
+      if (!ui.optionsModal.classList.contains('hidden')) { ui.optionsModal.classList.add('hidden'); return; }
       if (!ui.hotkeysModal.classList.contains('hidden')) { ui.hotkeysModal.classList.add('hidden'); return; }
       if (!ui.newRunModal.classList.contains('hidden')) { ui.newRunModal.classList.add('hidden'); return; }
       if (!ui.relicModal.classList.contains('hidden')) { gameActions.onSkipRelic(); return; }
@@ -104,9 +105,10 @@ export function setupKeyboardListeners(gameActions) {
 
     if (state.phase === 'betting') {
       if (pressed === hotkeys.deal.toLowerCase() || (hotkeys.deal === "Enter" && isSpaceOrEnter)) gameActions.onDeal();
-      if (pressed === hotkeys.betMin) gameActions.quickBet('min');
-      if (pressed === hotkeys.betHalf) gameActions.quickBet('half');
-      if (pressed === hotkeys.betAllIn) gameActions.quickBet('allin');
+      const pills = document.querySelectorAll('.pill');
+      if (pressed === hotkeys.betMin && pills[0]) gameActions.quickBet(pills[0].getAttribute('data-bet'));
+      if (pressed === hotkeys.betHalf && pills[1]) gameActions.quickBet(pills[1].getAttribute('data-bet'));
+      if (pressed === hotkeys.betAllIn && pills[2]) gameActions.quickBet(pills[2].getAttribute('data-bet'));
     } else if (state.phase === 'player') {
       if (pressed === hotkeys.hit) gameActions.onHit();
       if (pressed === hotkeys.stand) gameActions.onStand();
