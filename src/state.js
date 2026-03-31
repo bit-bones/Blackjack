@@ -90,11 +90,21 @@ export const state = {
 
   cheated: false,
 
+  // Insurance state
+  insuranceBet: 0,
+  insuranceTaken: false,
+  insurancePayout: 0,
+  dealerBJChecked: false,
+  _insuranceSettled: false,
+
   // Betting style options
   bettingStyle: "total-chips",  // "total-chips" | "previous-bet" | "units"
   previousBet: 0,
   unitSize: 10,
   showLastResult: true,
+
+  // Button confirm mode
+  confirmMode: "single",  // "single" | "double"
 };
 
 export function handTotal(hand) {
@@ -135,6 +145,11 @@ export function resetHandFlags() {
   state.flags.canSplit = false;
   state.flags.usedLuckyCoinThisHand = false;
   state.flags.usedPeekThisHand = false;
+  state.insuranceBet = 0;
+  state.insuranceTaken = false;
+  state.insurancePayout = 0;
+  state.dealerBJChecked = false;
+  state._insuranceSettled = false;
 }
 
 export function shuffleInPlace(arr) {

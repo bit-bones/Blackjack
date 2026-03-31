@@ -15,26 +15,35 @@
   --primary: #475cfb;
   --primary-2: #81adeb;
 }
+/* Poker chip icon – cross-platform SVG replacement for 🪙 */
+.chip-icon {
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='32' cy='32' r='30' fill='%23d9384b' stroke='%23222' stroke-width='2.5'/%3E%3Cg fill='%23fff' opacity='.9'%3E%3Crect x='28' y='2.5' width='8' height='10' rx='2.5'/%3E%3Crect x='28' y='2.5' width='8' height='10' rx='2.5' transform='rotate(45 32 32)'/%3E%3Crect x='28' y='2.5' width='8' height='10' rx='2.5' transform='rotate(90 32 32)'/%3E%3Crect x='28' y='2.5' width='8' height='10' rx='2.5' transform='rotate(135 32 32)'/%3E%3Crect x='28' y='2.5' width='8' height='10' rx='2.5' transform='rotate(180 32 32)'/%3E%3Crect x='28' y='2.5' width='8' height='10' rx='2.5' transform='rotate(225 32 32)'/%3E%3Crect x='28' y='2.5' width='8' height='10' rx='2.5' transform='rotate(270 32 32)'/%3E%3Crect x='28' y='2.5' width='8' height='10' rx='2.5' transform='rotate(315 32 32)'/%3E%3C/g%3E%3Ccircle cx='32' cy='32' r='19' fill='none' stroke='%23fff' stroke-width='1.5' opacity='.45'/%3E%3Ccircle cx='32' cy='32' r='14' fill='%23b52d3c'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
 *{ box-sizing: border-box }
 html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 20% -20%, #16233b, transparent), var(--bg); color: var(--ink); font-family: "Source Sans 3", system-ui, -apple-system, Segoe UI, Roboto; }
 
-#app{ max-width: 1100px; margin: 0 auto; padding: 16px; }
+#app{ max-width: 1200px; margin: 0 auto; padding: 16px; }
 
 .topbar{
-  display: grid; grid-template-columns: 1fr auto; gap: 4px; align-items: center; margin-bottom: 10px;
+  display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;
 }
 .branding{ display:flex; gap:12px; align-items:center}
-.logo{ width:44px; height:44px; display:grid; place-items:center; background: linear-gradient(135deg, var(--primary), var(--primary-2)); border-radius:12px; font-size:22px; box-shadow: 0 10px 20px var(--shadow); cursor: pointer; transition: transform .15s ease; }
+.logo{ width:44px; height:44px; display:grid; place-items:center; background: linear-gradient(135deg, var(--primary), var(--primary-2)); border-radius:12px; font-size:22px; box-shadow: 0 10px 20px var(--shadow); cursor: pointer; transition: transform .15s ease; position: relative; z-index: 20; }
 .logo:hover{ transform: scale(1.08); }
 .title h1{ font-family: Montserrat, system-ui; font-size: 22px; margin:0; letter-spacing:0.4px}
 .title p{ margin:0; color: var(--muted); font-size: 13px }
 
-.status{ display:flex; gap:14px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+.status{ display:flex; gap:10px; flex-wrap: wrap; align-items: center; }
 .stat{ background: #121a2c; border: 1px solid #1b2742; padding: 8px 12px; border-radius: 12px; min-width: 88px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02); }
 .stat-label{ color: var(--muted); font-size: 11px; letter-spacing: .4px; text-transform: uppercase }
 .stat-value{ font-weight:700; font-size: 16px; margin-top: 2px; }
 
-.table{ display:grid; grid-template-columns: minmax(0,1fr) 260px; gap: 16px; align-items: start; }
+.table{ display:grid; grid-template-columns: minmax(0,1fr); gap: 16px; align-items: start; position: relative; padding-right: 336px; }
 .felt{
   background: radial-gradient(800px 180px at 50% -60px, var(--felt-light), transparent), radial-gradient(1000px 400px at 50% 100%, var(--felt-dark), var(--felt)), var(--felt);
   border-radius: 18px;
@@ -135,7 +144,7 @@ html, body { margin: 0; padding: 0; background: radial-gradient(1200px 600px at 
 .shoe-label{ font-size: 12px; color: #b9ffd4; opacity: .8 }
 
 .controls{
-  margin-top: 14px; grid-column: 1 / 2;
+  margin-top: 14px;
   display:grid; grid-template-columns: 1fr; gap: 10px;
 }
 .betting{
@@ -205,6 +214,20 @@ button{
 }
 button:hover{ transform: translateY(-1px); border-color: #2a3f77; }
 button:disabled{ opacity: .45; cursor: not-allowed; transform:none }
+button.confirm-pending{
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary), 0 0 12px rgba(100,180,255,.25);
+  animation: confirm-pulse 1s ease-in-out infinite;
+}
+@keyframes confirm-pulse{
+  0%,100%{ box-shadow: 0 0 0 1px var(--primary), 0 0 12px rgba(100,180,255,.25) }
+  50%{ box-shadow: 0 0 0 2px var(--primary), 0 0 18px rgba(100,180,255,.4) }
+}
+.pill.confirm-pending{
+  border-color: var(--primary);
+  box-shadow: 0 0 0 1px var(--primary), 0 0 12px rgba(100,180,255,.25);
+  animation: confirm-pulse 1s ease-in-out infinite;
+}
 button.primary{ background: linear-gradient(180deg, var(--primary-2), var(--primary)); border-color: transparent; color: #0b0b12; text-shadow: 0 1px 0 rgba(255,255,255,0.3); }
 button.ghost{ background: transparent; border-color: #2a3f77; }
 button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
@@ -214,7 +237,10 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 .tips{ color: #c4d9ff; opacity: .9; font-size: 14px }
 
 .relics{
-  background: #0d1425; border: 1px solid #16213a; padding: 12px; border-radius: 14px; height: fit-content; align-self: start; position: sticky; top: 96px; max-height: calc(100vh - 140px); overflow-y: auto;
+  background: #0d1425; border: 1px solid #16213a; padding: 12px; border-radius: 14px;
+  max-height: 100%; overflow-y: auto;
+  width: 320px;
+  position: absolute; right: 0; top: 0;
 }
 .relics h2{ margin: 2px 0 10px; font-family: Montserrat; font-size: 16px; }
 .relics-list{ display:flex; flex-direction: column; gap: 10px; }
@@ -321,17 +347,21 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 .toast.show{ opacity: 1; transform: translateX(-50%) translateY(0); }
 
 .modal{
-  position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: grid; place-items: center; z-index: 10;
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 10;
+  padding-top: var(--modal-top, 70px);
+  padding-bottom: var(--modal-bottom, 70px);
 }
 .modal.hidden{ display: none; }
 .modal-content{
-  width: min(680px, 92vw); background: #0d1425; border: 1px solid #1a2746; border-radius: 16px; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+  width: min(680px, 92vw); max-height: calc(100vh - var(--modal-top, 70px) - var(--modal-bottom, 70px)); display: flex; flex-direction: column; background: #0d1425; border: 1px solid #1a2746; border-radius: 16px; padding: 16px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
 }
-.modal-content h3{ font-family: Montserrat; margin: 0 0 8px 0 }
-.modal-content p{ color: var(--muted); margin: 0 0 12px 0 }
+.modal-content h3{ font-family: Montserrat; margin: 0 0 8px 0; flex-shrink: 0 }
+.modal-content p{ color: var(--muted); margin: 0 0 12px 0; flex-shrink: 0 }
+.modal-content > .relic-tabs{ flex-shrink: 0 }
+.modal-body{ flex: 1; overflow-y: auto; min-height: 0; padding-right: 4px; }
 
 .modal-buttons{
-  display: flex; gap: 8px; justify-content: flex-start; margin-top: 16px;
+  display: flex; gap: 8px; justify-content: flex-start; margin-top: 16px; flex-shrink: 0;
 }
 
 /* Result text + rows */
@@ -359,10 +389,6 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 .choice .icon{ width:40px; height:40px; display:grid; place-items:center; background:#111b32; border-radius: 8px; font-size:20px }
 .choice .name{ font-weight: 700 }
 .choice .desc{ color: var(--muted); font-size: 13px; margin-top: 2px }
-
-.relics-list.scrollable{
-  max-height: 400px; overflow-y: auto;
-}
 
 #closeRelicListBtn {
   margin-top: 12px; 
@@ -470,20 +496,14 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   margin-top: 4px;
 }
 
-.relics-list.scrollable {
-  padding-right: 16px;        /* space between right edge of relic items and the scrollbar */
-  padding-inline-end: 16px;  /* safer for RTL/ltr */
-  scrollbar-gutter: stable;  /* optional: reserve space for scrollbar to avoid layout shifts */
-}
-
 /* ────────────────────────────
    Responsive / Mobile
    ──────────────────────────── */
 
 /* Tablet breakpoint */
 @media (max-width: 980px){
-  .table{ grid-template-columns: 1fr; align-items: stretch; }
-  .relics{ order: 3; position: static; max-height: none; overflow: visible; }
+  .table{ grid-template-columns: 1fr; align-items: stretch; padding-right: 0; }
+  .relics{ position: static; max-height: none; overflow: visible; width: auto; }
 }
 
 /* Mobile breakpoint */
@@ -507,7 +527,6 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 
   /* -- Header: compact single row -- */
   .topbar{
-    grid-template-columns: auto 1fr;
     gap: 6px;
     margin-bottom: 6px;
     flex-shrink: 0;
@@ -600,7 +619,7 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 
   /* -- Controls: FIXED height so felt never resizes between phases -- */
   .controls{
-    flex: 0 0 210px;
+    flex: 0 0 260px;
     gap: 6px;
     margin-top: 0;
     display: flex;
@@ -632,18 +651,21 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
     outline: none;
     border: none;
     margin: 14px 0;
+    padding: 8px 0;
+    cursor: pointer;
+    touch-action: manipulation;
   }
   #betRange::-webkit-slider-thumb{
     -webkit-appearance: none;
     appearance: none;
-    width: 28px;
-    height: 28px;
+    width: 34px;
+    height: 34px;
     border-radius: 50%;
     background: linear-gradient(180deg, var(--primary-2), var(--primary));
     border: 2px solid #2a3f77;
     box-shadow: 0 2px 8px rgba(0,0,0,0.4);
     cursor: pointer;
-    margin-top: -11px;
+    margin-top: -14px;
   }
   #betRange::-webkit-slider-runnable-track{
     height: 6px;
@@ -672,11 +694,13 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
     gap: 6px;
   }
   .pill{
-    padding: 8px 0;
+    padding: 14px 0;
     text-align: center;
-    font-size: 13px;
+    font-size: 14px;
     font-weight: 600;
-    border-radius: 8px;
+    border-radius: 10px;
+    min-height: 46px;
+    touch-action: manipulation;
   }
 
   /* ── Phase-aware mobile layout ── */
@@ -688,6 +712,7 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   .controls.phase-betting .actions #doubleBtn,
   .controls.phase-betting .actions #surrenderBtn,
   .controls.phase-betting .actions #splitBtn,
+  .controls.phase-betting .actions #insuranceBtn,
   .controls.phase-betting .actions #peekBtn{ display: none !important; }
 
   /* Playing phase: hide betting, show play actions */
@@ -697,6 +722,7 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   .controls.phase-playing .actions #standBtn,
   .controls.phase-playing .actions #doubleBtn,
   .controls.phase-playing .actions #splitBtn,
+  .controls.phase-playing .actions #insuranceBtn,
   .controls.phase-playing .actions #surrenderBtn{ display: block; }
 
   /* Action buttons: 2-col grid, big touch targets */
@@ -727,8 +753,6 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   /* -- Modals -- */
   .modal-content{
     width: 96vw;
-    max-height: 88vh;
-    overflow-y: auto;
     padding: 14px;
     border-radius: 14px;
   }
@@ -747,6 +771,12 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
   .relic-choices{
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+  #menuModal .relic-choices button{
+    width: 100%;
+    padding: 13px;
+    font-size: 15px;
+    min-height: 46px;
   }
   .choice{
     padding: 12px 10px;

@@ -1,6 +1,6 @@
 import { state, handTotal, isBlackjack, hasRelic, getRelicHookValue, resetHandFlags, shuffleInPlace } from './state.js';
 import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList, renderSplitHands, dealToSplitHand, animateCardToSplitArea } from './ui.js';
-import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET } from './constants.js';
+import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET, CHIP_HTML } from './constants.js';
 
 export function newShuffledDeck() {
   const deck = [];
@@ -47,8 +47,15 @@ export function drawTo(hand, hidden = false) {
 
 export function onDeal() {
   if (state.phase !== "betting") return;
-  const wager = Math.max(state.minBet, Math.min(state.bet, Math.min(state.chips, MAX_BET)));
-  if (wager < state.minBet || wager > state.chips) return;
+  if (state.bet < state.minBet) {
+    state.bet = state.minBet;
+    updateTopbar();
+    setPhaseControls();
+    showHint("Hand not dealt — Must match the minimum bet size.");
+    return;
+  }
+  const wager = Math.min(state.bet, Math.min(state.chips, MAX_BET));
+  if (wager > state.chips) return;
   state.bet = wager;
   state.previousBet = wager;
   state.isAllIn = (wager === state.chips);
@@ -109,18 +116,27 @@ export function startHand() {
           state.flags.canSplit = true;
         }
 
-        const splitHint = state.flags.canSplit ? ", or Split" : "";
-        showHint("Your move: Hit, Stand, Double, Surrender" + splitHint + ".");
-        setPhaseControls();
-
+        const dealerShowsAce = state.dealerHand[0].rank === "A";
         const playerBJ = isBlackjack(state.playerHand);
-        const dealerBJ = isBlackjack(state.dealerHand);
-        if (playerBJ || dealerBJ) {
-          state.flags.dealerRevealed = true;
-          revealDealerCard();
-          if (playerBJ && dealerBJ) endHand("push");
-          else if (playerBJ) endHand("blackjack");
-          else endHand("lose");
+
+        if (dealerShowsAce && !playerBJ) {
+          // Offer insurance before checking dealer blackjack
+          const splitHint = state.flags.canSplit ? ", Split" : "";
+          showHint("Dealer shows Ace — Hit, Stand, Double, Surrender, Insurance" + splitHint + ".");
+          setPhaseControls();
+        } else {
+          const splitHint = state.flags.canSplit ? ", or Split" : "";
+          showHint("Your move: Hit, Stand, Double, Surrender" + splitHint + ".");
+          setPhaseControls();
+
+          const dealerBJ = isBlackjack(state.dealerHand);
+          if (playerBJ || dealerBJ) {
+            state.flags.dealerRevealed = true;
+            revealDealerCard();
+            if (playerBJ && dealerBJ) endHand("push");
+            else if (playerBJ) endHand("blackjack");
+            else endHand("lose", { dealerBlackjack: true });
+          }
         }
       }
     }, i * DELAY);
@@ -129,6 +145,10 @@ export function startHand() {
 
 export function onHit() {
   if (state.phase !== "player") return;
+  // If dealer shows ace and BJ not yet checked, check now (player declined insurance)
+  if (!state.dealerBJChecked && state.dealerHand[0].rank === "A") {
+    if (checkDealerBlackjack()) return;
+  }
   state.phase = "animating"; // lock input during animation
   drawTo(state.playerHand);
   state.flags.canDouble = false;
@@ -176,6 +196,10 @@ export function onHit() {
 
 export function onStand() {
   if (state.phase !== "player") return;
+  // If dealer shows ace and BJ not yet checked, check now (player declined insurance)
+  if (!state.dealerBJChecked && state.dealerHand[0].rank === "A") {
+    if (checkDealerBlackjack()) return;
+  }
   state.phase = "animating"; // lock input during dealer play
   state.flags.canDouble = false;
   state.flags.canSurrender = false;
@@ -184,6 +208,10 @@ export function onStand() {
 
 export function onSplit() {
   if (state.phase !== "player") return;
+  // If dealer shows ace and BJ not yet checked, check now (player declined insurance)
+  if (!state.dealerBJChecked && state.dealerHand[0].rank === "A") {
+    if (checkDealerBlackjack()) return;
+  }
   const totalHands = state.splitHandIndex + state.splitHands.length;
   if (totalHands >= 4) return;
   if (state.chips < state.bet) return;
@@ -246,10 +274,45 @@ export function onSplit() {
   }, DELAY);
 }
 
+export function onInsurance() {
+  if (state.phase !== "player") return;
+  if (state.insuranceTaken) return;
+  if (state.playerHand.length !== 2) return;
+  // Dealer must have an Ace showing (upcard is index 0)
+  if (state.dealerHand[0].rank !== "A") return;
+  const sideBet = Math.floor(state.bet / 2);
+  if (sideBet <= 0 || sideBet > state.chips) return;
+
+  state.insuranceTaken = true;
+  state.insuranceBet = sideBet;
+  state.chips -= sideBet;
+  updateTopbar();
+  setPhaseControls();
+  showHint(`Insurance taken: ${sideBet} chips.`);
+
+  // After taking insurance, check for dealer blackjack
+  if (checkDealerBlackjack()) return;
+}
+
+/** Check for dealer blackjack when dealer shows an ace (after insurance decision).
+ *  Returns true if dealer has blackjack and hand was ended. */
+export function checkDealerBlackjack() {
+  if (state.dealerBJChecked) return false;
+  if (state.dealerHand[0].rank !== "A") return false;
+  state.dealerBJChecked = true;
+  if (isBlackjack(state.dealerHand)) {
+    state.flags.dealerRevealed = true;
+    revealDealerCard();
+    endHand("lose", { dealerBlackjack: true });
+    return true;
+  }
+  return false;
+}
+
 function standOrBust() {
   const t = handTotal(state.playerHand).total;
   if (t > 21) {
-    endHand("lose");
+    endHand("lose", { bust: true });
     return;
   }
 
@@ -333,15 +396,15 @@ function settle() {
 
   // For split aces + 10 card = 21, pay 1:1 as "win" not "blackjack"
   let outcome;
-  if (d > 21) outcome = "win";
+  let settleOpts = {};
+  if (d > 21) { outcome = "win"; settleOpts.dealerBust = true; }
   else if (p > d) outcome = "win";
   else if (p < d) outcome = "lose";
   else outcome = "push";
-  endHand(outcome);
+  endHand(outcome, settleOpts);
 }
 
 export function endHand(outcome, opts = {}) {
-  state._chipsBeforeSubHand = state.chips;
   state.phase = "payout";
   setTotalsStyles(outcome);
   setPhaseControls();
@@ -356,7 +419,7 @@ export function endHand(outcome, opts = {}) {
     let totalShown = win;
     starGain = 2;
     state.streak += 1;
-    info = `Blackjack! +${Math.floor(state.bet * 1.5)}🪙`;
+    info = `Blackjack! +${Math.floor(state.bet * 1.5)}${CHIP_HTML}`;
     if (hasRelic("blackjack-boost")) {
       const bonus = Math.floor(state.bet * 0.5);
       totalShown += bonus;
@@ -369,7 +432,7 @@ export function endHand(outcome, opts = {}) {
     const martingaleActive = hasRelic("martingale-master") && state.lastHandNetLoss > 0 && state.bet >= 2 * state.lastHandNetLoss;
     let baseWin = state.bet;
     let totalShown = baseWin;
-    let infoParts = [`Win +${baseWin}🪙`];
+    let infoParts = [`Win +${baseWin}${CHIP_HTML}`];
     if (martingaleActive) {
       const martingaleBonus = Math.floor(state.bet * 0.5);
       totalShown += martingaleBonus;
@@ -395,7 +458,13 @@ export function endHand(outcome, opts = {}) {
     info = "Push";
     if (!hasRelic("push-it")) state.streak = 0;
   } else if (outcome === "lose") {
-    info = opts.surrendered ? "Surrender" : "Lose";
+    if (opts.surrendered) {
+      const surrenderRate = hasRelic("cool-headed") ? 0.75 : 0.5;
+      const loss = state.bet - Math.floor(state.bet * surrenderRate);
+      info = `Surrender -${loss}${CHIP_HTML}`;
+    } else {
+      info = `Lose -${state.bet}${CHIP_HTML}`;
+    }
     if (opts.surrendered && hasRelic("cool-headed")) { /* keep streak */ } else { state.streak = 0; }
   }
 
@@ -413,8 +482,19 @@ export function endHand(outcome, opts = {}) {
 
   state.chips += delta;
 
+  // Settle insurance bet (only once, on the first hand settlement)
+  if (state.insuranceTaken && state.insurancePayout === 0 && !state._insuranceSettled) {
+    state._insuranceSettled = true;
+    if (isBlackjack(state.dealerHand)) {
+      // Dealer has blackjack — insurance pays 2:1 (profit = 2 × side bet)
+      state.insurancePayout = state.insuranceBet * 2;
+      state.chips += state.insuranceBet + state.insurancePayout; // return side bet + 2:1 winnings
+    }
+    // If dealer doesn't have blackjack, the side bet is already deducted
+  }
+
   // Track per-hand result for split display
-  const handDelta = state.chips - (state._chipsBeforeSubHand || 0);
+  const handDelta = delta - state.bet;
   const handLabel = (outcome === "blackjack" || outcome === "win") ? "Win"
     : outcome === "push" ? "Push"
     : (opts.surrendered ? "Surrender" : "Lose");
@@ -436,7 +516,7 @@ export function endHand(outcome, opts = {}) {
   }
   if (state.minBet < 5) state.minBet = 5;
 
-  if (state.chips > state.highScore) {
+  if (!state.cheated && state.chips > state.highScore) {
     state.highScore = state.chips;
     localStorage.setItem("bjrl-highscore", String(state.highScore));
   }
@@ -456,12 +536,23 @@ export function endHand(outcome, opts = {}) {
 
   setTimeout(() => {
     const canGamble = (outcome === "win" || outcome === "blackjack") && hasRelic("double-or-nothing");
-    openResultModal(outcome, info, state.chips, starGain, state.stars, canGamble);
+    openResultModal(outcome, info, state.chips, starGain, state.stars, canGamble, opts);
   }, 500);
 }
 
-export function openResultModal(outcome, info, chipTotal, starGain, starTotal, canGamble = false) {
-  let title = outcome === "blackjack" ? "Blackjack!" : outcome === "win" ? "You Win!" : outcome === "lose" ? "Dealer Wins" : "Push";
+export function openResultModal(outcome, info, chipTotal, starGain, starTotal, canGamble = false, opts = {}) {
+  let title;
+  if (outcome === "blackjack") {
+    title = "Blackjack! - You Win!";
+  } else if (outcome === "win") {
+    title = opts.dealerBust ? "Dealer Busts - You Win!" : "You Win!";
+  } else if (outcome === "lose") {
+    if (opts.bust) title = "You Bust - Dealer Wins";
+    else if (opts.dealerBlackjack) title = "Blackjack - Dealer Wins";
+    else title = "Dealer Wins";
+  } else {
+    title = "Push";
+  }
   if (state.isSplitting) {
     const totalHands = state.splitHandIndex + state.splitHands.length;
     title = `Hand ${state.splitHandIndex}/${totalHands}: ` + title;
@@ -473,7 +564,7 @@ export function openResultModal(outcome, info, chipTotal, starGain, starTotal, c
   ui.resultMainTextEl.innerHTML = "";
   const outcomeSpan = document.createElement("span");
   outcomeSpan.className = "outcome-text";
-  outcomeSpan.textContent = info;
+  outcomeSpan.innerHTML = info;
   ui.resultMainTextEl.appendChild(outcomeSpan);
   // show total of chip bonuses at end for wins/blackjack
   if (outcome === "win" || outcome === "blackjack") {
@@ -492,7 +583,7 @@ export function openResultModal(outcome, info, chipTotal, starGain, starTotal, c
       ui.resultMainTextEl.appendChild(totalSpan);
     }
   }
-  ui.resultChipTotalEl.textContent = `${chipTotal} 🪙`;
+  ui.resultChipTotalEl.innerHTML = `${chipTotal} ${CHIP_HTML}`;
 
   if (starGain > 0) {
     ui.resultStarsRowEl.style.display = "";
@@ -500,6 +591,20 @@ export function openResultModal(outcome, info, chipTotal, starGain, starTotal, c
     ui.resultStarTotalEl.textContent = `${starTotal} ✨`;
   } else {
     ui.resultStarsRowEl.style.display = "none";
+  }
+
+  // Insurance result row
+  if (state.insuranceTaken) {
+    ui.resultInsuranceRowEl.style.display = "";
+    if (state.insurancePayout > 0) {
+      ui.resultInsuranceTextEl.textContent = `Insurance +${state.insurancePayout}`;
+      ui.resultInsuranceTextEl.className = "result-text label result-win";
+    } else {
+      ui.resultInsuranceTextEl.textContent = `Insurance -${state.insuranceBet}`;
+      ui.resultInsuranceTextEl.className = "result-text label result-lose";
+    }
+  } else {
+    ui.resultInsuranceRowEl.style.display = "none";
   }
 
   if (canGamble && state.lastWinDelta > 0) {
@@ -535,13 +640,13 @@ export function onGamblePayout() {
   ui.resultGambleBtn.disabled = true;
   const amount = state.lastWinDelta;
   // Rebuild the left result line so the total is guaranteed at the very end
-  const baseInfo = ui.resultMainTextEl.querySelector('.outcome-text')?.textContent || '';
+  const baseInfo = ui.resultMainTextEl.querySelector('.outcome-text')?.innerHTML || '';
   const leftContainer = ui.resultMainTextEl;
   leftContainer.innerHTML = '';
 
   const outcomeSpan = document.createElement('span');
   outcomeSpan.className = 'outcome-text';
-  outcomeSpan.textContent = baseInfo;
+  outcomeSpan.innerHTML = baseInfo;
   leftContainer.appendChild(outcomeSpan);
 
   const labelSpan = document.createElement('span');

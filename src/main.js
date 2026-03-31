@@ -1,6 +1,6 @@
 import { state, resetHandFlags, handTotal, generateSeed, initRng } from './state.js';
-import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea, updateBetButtons } from './ui.js';
-import { onDeal, onHit, onStand, onSplit, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo } from './actions.js';
+import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea, updateBetButtons, showConfirmModal, clearConfirmStates, updateModalBounds } from './ui.js';
+import { onDeal, onHit, onStand, onSplit, onInsurance, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo, checkDealerBlackjack } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
 
@@ -14,11 +14,19 @@ function init() {
   setPhaseControls();
   updateBetButtons();
   showHint("Place your bet and press Deal.");
+  updateModalBounds();
 }
+
+window.addEventListener('resize', updateModalBounds);
+
+// Keep modal bounds fresh whenever any modal is shown
+new MutationObserver(() => updateModalBounds()).observe(
+  document.body, { subtree: true, attributes: true, attributeFilter: ['class'] }
+);
 
 // Action Glue
 const gameActions = {
-  onDeal, onHit, onStand, onSplit, onGamblePayout, pickRelic,
+  onDeal, onHit, onStand, onSplit, onInsurance, onGamblePayout, pickRelic,
   onSkipRelic: () => { state.stars = 0; updateTopbar(); ui.relicModal.classList.add("hidden"); nextRound(); },
   onResultContinue: () => {
     ui.resultModal.classList.add("hidden");
@@ -35,10 +43,14 @@ const gameActions = {
 
     // Determine label for last-result display
     if (!state.isSplitting || state.splitHandResults.length <= 1) {
-      // Single hand — use simple label
-      if (state.lastHandNetResult > 0) {
+      // When insurance was taken, derive label from hand-only result (exclude insurance)
+      const insNetDelta = state.insuranceTaken
+        ? (state.insurancePayout > 0 ? state.insurancePayout : -state.insuranceBet)
+        : 0;
+      const handOnlyResult = state.lastHandNetResult - insNetDelta;
+      if (handOnlyResult > 0) {
         state.lastResultLabel = "Win";
-      } else if (state.lastHandNetResult < 0) {
+      } else if (handOnlyResult < 0) {
         state.lastResultLabel = state.lastInfo.startsWith("Surrender") ? "Surrender" : "Lose";
       } else {
         state.lastResultLabel = "Push";
@@ -79,14 +91,18 @@ const gameActions = {
     ui.newRunModal.classList.remove("hidden");
   },
   onNewRunStart: () => {
+    const hasProgress = state.chips !== INITIAL_CHIPS || state.minBet !== 5 || state.relics.length > 0 || state.stars > 0 || state.streak > 0 || state.phase !== "betting";
+    const needsConfirm = !state.pendingGameOver && hasProgress;
+    const doStart = () => {
     ui.newRunModal.classList.add("hidden");
     const classicMode = !ui.newRunRelicsToggle.checked;
     const seedInput = ui.newRunSeedInput.value.trim().toUpperCase();
     const seed = seedInput || generateSeed();
 
     state.chips = INITIAL_CHIPS; state.bet = 25; state.minBet = 5; state.stars = 0; state.streak = 0;
-    state.relics = []; state.cheated = false; state.flags.usedResurrectionThisRun = false;
+    state.relics = []; state.cheated = !!seedInput; state.flags.usedResurrectionThisRun = false;
     state.lastHandNetLoss = 0; state.lastHandNetResult = null; state.lastResultLabel = null; state.splitHandResults = []; state.chipsBeforeHand = 0;
+    state.insuranceBet = 0; state.insuranceTaken = false; state.insurancePayout = 0; state.dealerBJChecked = false; state._insuranceSettled = false;
     state.classicMode = classicMode;
     initRng(seed);
     // clear split state
@@ -109,6 +125,12 @@ const gameActions = {
     // remove any win/lose/push classes left from previous run
     setTotalsStyles(null);
     setPhaseControls(); showHint("New run! Adjust bet and press Deal.");
+    };
+    if (needsConfirm) {
+      showConfirmModal("Start new run? Current run will be lost.", doStart);
+    } else {
+      doStart();
+    }
   },
   quickBet: (type) => {
     const maxBet = Math.min(MAX_BET, state.chips);
@@ -139,6 +161,10 @@ const gameActions = {
   },
   onDouble: () => {
     if (state.phase !== "player" || state.chips < state.bet) return;
+    // If dealer shows ace and BJ not yet checked, check now (player declined insurance)
+    if (!state.dealerBJChecked && state.dealerHand[0].rank === "A") {
+      if (checkDealerBlackjack()) return;
+    }
     state.phase = "animating";
     state.chips -= state.bet; state.bet *= 2; updateTopbar();
     import('./actions.js').then(m => {
@@ -150,6 +176,11 @@ const gameActions = {
     });
   },
   onSurrender: () => {
+    if (state.phase !== "player") return;
+    // If dealer shows ace and BJ not yet checked, check now (player declined insurance)
+    if (!state.dealerBJChecked && state.dealerHand[0].rank === "A") {
+      if (checkDealerBlackjack()) return;
+    }
     const refund = Math.floor(state.bet * (state.relics.find(r => r.id === "cool-headed") ? 0.75 : 0.5));
     state.chips += refund; updateTopbar(); endHand("lose", { surrendered: true });
   },
@@ -216,14 +247,44 @@ function openRelicChoiceModal(choices) {
   ui.relicModal.classList.remove("hidden");
 }
 
+// Double-press confirm logic
+let pendingConfirmBtn = null;
+
+function requireConfirm(btn, action) {
+  if (state.confirmMode === "single") { action(); return; }
+  if (pendingConfirmBtn === btn) {
+    btn.classList.remove("confirm-pending");
+    pendingConfirmBtn = null;
+    action();
+  } else {
+    clearConfirmStates();
+    btn.classList.add("confirm-pending");
+    pendingConfirmBtn = btn;
+  }
+}
+
+function requireConfirmHotkey(btn, action) {
+  if (state.confirmMode === "single") { action(); return; }
+  if (pendingConfirmBtn === btn) {
+    clearConfirmStates();
+    pendingConfirmBtn = null;
+    action();
+  } else {
+    clearConfirmStates();
+    if (btn) btn.classList.add("confirm-pending");
+    pendingConfirmBtn = btn;
+  }
+}
+
 // Button Events
-ui.dealBtn.addEventListener("click", onDeal);
-ui.hitBtn.addEventListener("click", onHit);
-ui.standBtn.addEventListener("click", onStand);
-ui.doubleBtn.addEventListener("click", gameActions.onDouble);
-ui.surrenderBtn.addEventListener("click", gameActions.onSurrender);
-ui.splitBtn.addEventListener("click", onSplit);
-ui.peekBtn.addEventListener("click", gameActions.onPeek);
+ui.dealBtn.addEventListener("click", () => requireConfirm(ui.dealBtn, onDeal));
+ui.hitBtn.addEventListener("click", () => requireConfirm(ui.hitBtn, onHit));
+ui.standBtn.addEventListener("click", () => requireConfirm(ui.standBtn, onStand));
+ui.doubleBtn.addEventListener("click", () => requireConfirm(ui.doubleBtn, gameActions.onDouble));
+ui.surrenderBtn.addEventListener("click", () => requireConfirm(ui.surrenderBtn, gameActions.onSurrender));
+ui.splitBtn.addEventListener("click", () => requireConfirm(ui.splitBtn, onSplit));
+ui.insuranceBtn.addEventListener("click", () => requireConfirm(ui.insuranceBtn, onInsurance));
+ui.peekBtn.addEventListener("click", () => requireConfirm(ui.peekBtn, gameActions.onPeek));
 ui.resultContinueBtn.addEventListener("click", gameActions.onResultContinue);
 ui.resultGambleBtn.addEventListener("click", onGamblePayout);
 ui.restartBtn.addEventListener("click", gameActions.onMenuNewRun);
@@ -233,23 +294,45 @@ ui.menuRelicsBtn.addEventListener("click", () => { ui.menuModal.classList.add("h
 ui.menuHotkeysBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); renderHotkeys(); ui.hotkeysModal.classList.remove("hidden"); });
 ui.menuResumeBtn.addEventListener("click", () => { ui.menuModal.classList.add("hidden"); });
 document.querySelector(".logo").addEventListener("click", () => {
-  ui.menuSeedValue.textContent = state.seed || "";
-  ui.menuModal.classList.remove("hidden");
+  const menuModals = [ui.menuModal, ui.newRunModal, ui.relicListModal, ui.hotkeysModal, ui.optionsModal];
+  const anyOpen = menuModals.some(m => !m.classList.contains("hidden"));
+  if (anyOpen) {
+    menuModals.forEach(m => m.classList.add("hidden"));
+  } else {
+    ui.menuSeedValue.textContent = state.seed || "";
+    ui.menuModal.classList.remove("hidden");
+  }
 });
 ui.newRunStartBtn.addEventListener("click", gameActions.onNewRunStart);
 ui.newRunBackBtn.addEventListener("click", () => { ui.newRunModal.classList.add("hidden"); ui.menuModal.classList.remove("hidden"); });
 ui.copySeedBtn.addEventListener("click", () => {
   navigator.clipboard.writeText(state.seed || "").then(() => toast("Seed copied!"));
 });
-ui.closeRelicListBtn.addEventListener("click", () => ui.relicListModal.classList.add("hidden"));
+ui.closeRelicListBtn.addEventListener("click", () => { ui.relicListModal.classList.add("hidden"); ui.menuModal.classList.remove("hidden"); });
 ui.relicTabCurrent.addEventListener("click", () => switchRelicTab("current"));
 ui.relicTabAll.addEventListener("click", () => switchRelicTab("all"));
-ui.closeHotkeysBtn.addEventListener("click", () => ui.hotkeysModal.classList.add("hidden"));
+ui.closeHotkeysBtn.addEventListener("click", () => { ui.hotkeysModal.classList.add("hidden"); ui.menuModal.classList.remove("hidden"); });
 ui.resetHotkeysBtn.addEventListener("click", resetHotkeysToDefault);
-ui.betRange.addEventListener("input", () => { state.bet = Number(ui.betRange.value); ui.betEl.textContent = state.bet; setPhaseControls(); });
+
+// Hotkey category tabs
+document.querySelectorAll('.hotkey-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.hotkey-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    renderHotkeys(tab.getAttribute('data-hotkey-cat'));
+  });
+});
+
+ui.betRange.addEventListener("input", () => {
+  let val = Math.round(Number(ui.betRange.value) / 5) * 5;
+  val = Math.max(0, val);
+  state.bet = val;
+  ui.betEl.textContent = state.bet;
+  setPhaseControls();
+});
 
 document.querySelectorAll(".pill").forEach(btn => {
-  btn.addEventListener("click", () => gameActions.quickBet(btn.getAttribute("data-bet")));
+  btn.addEventListener("click", () => requireConfirm(btn, () => gameActions.quickBet(btn.getAttribute("data-bet"))));
 });
 
 // Options modal wiring
@@ -258,6 +341,8 @@ ui.menuOptionsBtn.addEventListener("click", () => {
   // Sync radio buttons with current state
   const radios = document.querySelectorAll('input[name="bettingStyle"]');
   radios.forEach(r => { r.checked = r.value === state.bettingStyle; });
+  const confirmRadios = document.querySelectorAll('input[name="confirmMode"]');
+  confirmRadios.forEach(r => { r.checked = r.value === state.confirmMode; });
   ui.unitSizeInput.value = state.unitSize;
   ui.unitSizeRow.style.display = state.bettingStyle === "units" ? "" : "none";
   ui.showLastResultToggle.checked = state.showLastResult;
@@ -268,6 +353,13 @@ document.querySelectorAll('input[name="bettingStyle"]').forEach(radio => {
     state.bettingStyle = e.target.value;
     ui.unitSizeRow.style.display = state.bettingStyle === "units" ? "" : "none";
     updateBetButtons();
+  });
+});
+document.querySelectorAll('input[name="confirmMode"]').forEach(radio => {
+  radio.addEventListener("change", (e) => {
+    state.confirmMode = e.target.value;
+    clearConfirmStates();
+    pendingConfirmBtn = null;
   });
 });
 ui.unitSizeInput.addEventListener("change", () => {
@@ -285,6 +377,7 @@ ui.showLastResultToggle.addEventListener("change", () => {
 });
 ui.closeOptionsBtn.addEventListener("click", () => {
   ui.optionsModal.classList.add("hidden");
+  ui.menuModal.classList.remove("hidden");
 });
 
 function renderAllRelicsList() {
@@ -294,7 +387,14 @@ function renderAllRelicsList() {
     el.innerHTML = `<div class="icon">${rel.icon}</div><div><div class="name">${rel.name}</div><div class="desc">${rel.desc}</div></div><button class="activate-btn">Activate</button>`;
     el.querySelector(".activate-btn").addEventListener("click", () => {
       if (!state.relics.find(r => r.id === rel.id)) {
-        state.relics.push(rel); state.cheated = true; renderRelicsList(); updateTopbar(); toast(`Activated: ${rel.name}`);
+        const activate = () => {
+          state.relics.push(rel); state.cheated = true; renderRelicsList(); updateTopbar(); toast(`Activated: ${rel.name}`);
+        };
+        if (!state.cheated) {
+          showConfirmModal(`Activate '${rel.name}'? Highscores will be disabled for this run.`, activate);
+        } else {
+          activate();
+        }
       }
     });
     ui.allRelicsListEl.appendChild(el);
@@ -305,7 +405,7 @@ function renderCurrentRelicsList() {
   ui.currentRelicsListEl.innerHTML = "";
   if (state.relics.length === 0) {
     const empty = document.createElement("div");
-    empty.style.cssText = "color: var(--muted); padding: 16px 0; text-align: center;";
+    empty.style.cssText = "color: var(--muted); padding: 180px 0; text-align: center;";
     empty.textContent = "No relics collected yet.";
     ui.currentRelicsListEl.appendChild(empty);
     return;
@@ -330,10 +430,10 @@ function switchRelicTab(tab) {
     ui.relicTabCurrent.classList.remove("active");
     ui.allRelicsListEl.style.display = "";
     ui.currentRelicsListEl.style.display = "none";
-    ui.relicListDescEl.textContent = "Activate relics for testing (marks run as cheated).";
+    ui.relicListDescEl.textContent = "Activating relics will disable highscores.";
     renderAllRelicsList();
   }
 }
 
-setupKeyboardListeners(gameActions);
+setupKeyboardListeners(gameActions, requireConfirmHotkey);
 init();

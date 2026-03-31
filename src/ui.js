@@ -4,6 +4,21 @@ import { MAX_BET } from './constants.js';
 export const $ = (sel) => document.querySelector(sel);
 export const $$ = (sel) => document.querySelectorAll(sel);
 
+/** Remove confirm-pending state from all buttons */
+export function clearConfirmStates() {
+  document.querySelectorAll('.confirm-pending').forEach(el => el.classList.remove('confirm-pending'));
+}
+
+/** Measure the felt element and set CSS custom properties so modals stay within its bounds */
+export function updateModalBounds() {
+  const felt = document.querySelector('.felt');
+  if (!felt) return;
+  const rect = felt.getBoundingClientRect();
+  const root = document.documentElement;
+  root.style.setProperty('--modal-top', `${Math.max(0, rect.top)}px`);
+  root.style.setProperty('--modal-bottom', `${Math.max(0, window.innerHeight - rect.bottom)}px`);
+}
+
 // DOM Cache
 export const ui = {
   minBetEl: $("#minBet"),
@@ -23,6 +38,7 @@ export const ui = {
   doubleBtn: $("#doubleBtn"),
   surrenderBtn: $("#surrenderBtn"),
   splitBtn: $("#splitBtn"),
+  insuranceBtn: $("#insuranceBtn"),
   peekBtn: $("#peekBtn"),
   hintEl: $("#hint"),
   relicsContainer: $("#relicsContainer"),
@@ -36,6 +52,8 @@ export const ui = {
   resultStarsRowEl: $("#resultStarsRow"),
   resultStarsTextEl: $("#resultStarsText"),
   resultStarTotalEl: $("#resultStarTotal"),
+  resultInsuranceRowEl: $("#resultInsuranceRow"),
+  resultInsuranceTextEl: $("#resultInsuranceText"),
   resultContinueBtn: $("#resultContinueBtn"),
   resultGambleBtn: $("#resultGambleBtn"),
   gameOverModal: $("#gameOverModal"),
@@ -76,6 +94,10 @@ export const ui = {
   unitSizeInput: $("#unitSizeInput"),
   showLastResultToggle: $("#showLastResultToggle"),
   closeOptionsBtn: $("#closeOptionsBtn"),
+  confirmModal: $("#confirmModal"),
+  confirmMessage: $("#confirmMessage"),
+  confirmOkBtn: $("#confirmOkBtn"),
+  confirmCancelBtn: $("#confirmCancelBtn"),
 };
 
 export function updateBetButtons() {
@@ -200,7 +222,7 @@ export function updateTopbar() {
   } else {
     ui.highScoreEl.textContent = `${state.highScore} 🏆`;  // Added trophy emoji for high score
   }
-  ui.betRange.min = String(state.minBet);
+  ui.betRange.min = "0";
   ui.betRange.max = Math.min(MAX_BET, state.chips).toString();
   ui.betRange.value = String(Math.min(state.bet, Number(ui.betRange.max)));
 }
@@ -221,12 +243,21 @@ export function setTotalsStyles(outcome) {
   }
 }
 
+function setMessage(elem, msg) {
+  if (typeof msg !== 'string') msg = String(msg);
+  if (msg.includes('<span class="chip-icon"></span>') || msg.includes("<span class='chip-icon'></span>")) {
+    elem.innerHTML = msg;
+  } else {
+    elem.textContent = msg;
+  }
+}
+
 export function showHint(msg) {
-  ui.hintEl.textContent = msg;
+  setMessage(ui.hintEl, msg);
 }
 
 export function toast(msg) {
-  ui.toastEl.textContent = msg;
+  setMessage(ui.toastEl, msg);
   ui.toastEl.classList.add("show");
   setTimeout(() => ui.toastEl.classList.remove("show"), 1600);
 }
@@ -239,10 +270,12 @@ export function setPhaseControls() {
     controlsEl.classList.add(state.phase === 'betting' ? 'phase-betting' : 'phase-playing');
   }
 
-  [ui.hitBtn, ui.standBtn, ui.doubleBtn, ui.surrenderBtn, ui.splitBtn, ui.peekBtn].forEach(b => b.disabled = true);
+  [ui.hitBtn, ui.standBtn, ui.doubleBtn, ui.surrenderBtn, ui.splitBtn, ui.insuranceBtn, ui.peekBtn].forEach(b => b.disabled = true);
+
+  clearConfirmStates();
 
   if (state.phase === "betting") {
-    ui.dealBtn.disabled = state.bet < state.minBet || state.bet > state.chips;
+    ui.dealBtn.disabled = state.bet > state.chips;
     ui.betRange.disabled = false;
     $$(".pill").forEach(b => b.disabled = false);
 
@@ -250,15 +283,41 @@ export function setPhaseControls() {
     if (state.lastHandNetResult !== null && state.showLastResult) {
       ui.lastResultEl.innerHTML = "";
 
-      if (state.splitHandResults.length > 1) {
-        // Multi-hand split display
-        state.splitHandResults.forEach(h => {
+      const hasInsurance = state.insuranceTaken;
+      const useMultiLine = state.splitHandResults.length > 1 || hasInsurance;
+
+      if (useMultiLine) {
+        // Compute insurance net delta for separating from hand result
+        const insNetDelta = hasInsurance ? (state.insurancePayout > 0 ? state.insurancePayout : -state.insuranceBet) : 0;
+
+        if (state.splitHandResults.length > 1) {
+          // Multi-hand split display
+          state.splitHandResults.forEach(h => {
+            const line = document.createElement("div");
+            const sign = h.delta >= 0 ? "+" : "";
+            line.textContent = `${h.label} ${sign}${h.delta}`;
+            line.className = h.delta > 0 ? "lr-gain" : h.delta < 0 ? "lr-loss" : "lr-even";
+            ui.lastResultEl.appendChild(line);
+          });
+        } else {
+          // Single hand line (subtract insurance portion to show hand-only result)
+          const handOnly = state.lastHandNetResult - insNetDelta;
+          const sign = handOnly >= 0 ? "+" : "";
+          const label = state.lastResultLabel || (handOnly > 0 ? "Win" : handOnly < 0 ? "Lose" : "Push");
           const line = document.createElement("div");
-          const sign = h.delta >= 0 ? "+" : "";
-          line.textContent = `${h.label} ${sign}${h.delta}`;
-          line.className = h.delta > 0 ? "lr-gain" : h.delta < 0 ? "lr-loss" : "lr-even";
+          line.textContent = `${label} ${sign}${handOnly}`;
+          line.className = handOnly > 0 ? "lr-gain" : handOnly < 0 ? "lr-loss" : "lr-even";
           ui.lastResultEl.appendChild(line);
-        });
+        }
+
+        if (hasInsurance) {
+          const insLine = document.createElement("div");
+          const insSign = insNetDelta >= 0 ? "+" : "";
+          insLine.textContent = `Insurance ${insSign}${insNetDelta}`;
+          insLine.className = insNetDelta > 0 ? "lr-gain" : "lr-loss";
+          ui.lastResultEl.appendChild(insLine);
+        }
+
         const sep = document.createElement("div");
         sep.className = "lr-sep";
         ui.lastResultEl.appendChild(sep);
@@ -269,7 +328,7 @@ export function setPhaseControls() {
         total.className = r > 0 ? "lr-gain" : r < 0 ? "lr-loss" : "lr-even";
         ui.lastResultEl.appendChild(total);
       } else {
-        // Single hand display
+        // Single hand display (no insurance)
         const r = state.lastHandNetResult;
         const sign = r >= 0 ? "+" : "";
         const label = state.lastResultLabel || (r > 0 ? "Win" : r < 0 ? "Lose" : "Push");
@@ -300,6 +359,12 @@ export function setPhaseControls() {
     const hasPair = state.playerHand.length === 2 && state.playerHand[0] && state.playerHand[1] && state.playerHand[0].value === state.playerHand[1].value;
     const canSplitNow = hasPair && totalHands < 4 && state.chips >= state.bet;
     ui.splitBtn.disabled = !canSplitNow;
+
+    // Insurance: available only on initial 2 cards when dealer shows an Ace
+    const canInsurance = !state.insuranceTaken && state.playerHand.length === 2
+      && state.dealerHand.length === 2 && state.dealerHand[0].rank === "A"
+      && Math.floor(state.bet / 2) > 0 && state.chips >= Math.floor(state.bet / 2);
+    ui.insuranceBtn.disabled = !canInsurance;
 
     const hasPeek = hasRelic("peek");
     ui.peekBtn.disabled = !(hasPeek && !state.flags.usedPeekThisHand);
@@ -459,4 +524,29 @@ export function animateCardsToPlayerArea(cards) {
   for (let i = 0; i < newCards.length && i < fromRects.length; i++) {
     animateMove(newCards[i], fromRects[i]);
   }
+}
+
+let _confirmCleanup = null;
+
+export function showConfirmModal(message, onConfirm) {
+  // Clean up any previous listeners
+  if (_confirmCleanup) _confirmCleanup();
+
+  ui.confirmMessage.textContent = message;
+  ui.confirmModal.classList.remove("hidden");
+
+  const close = () => {
+    ui.confirmModal.classList.add("hidden");
+    ui.confirmOkBtn.removeEventListener("click", onOk);
+    ui.confirmCancelBtn.removeEventListener("click", onCancel);
+    _confirmCleanup = null;
+  };
+
+  const onOk = () => { close(); onConfirm(); };
+  const onCancel = () => { close(); };
+
+  ui.confirmOkBtn.addEventListener("click", onOk);
+  ui.confirmCancelBtn.addEventListener("click", onCancel);
+
+  _confirmCleanup = close;
 }

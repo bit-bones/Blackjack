@@ -9,6 +9,7 @@ export const RANK_VALUE = (r) => {
 
 export const INITIAL_CHIPS = 100;
 export const MAX_BET = 1000;
+export const CHIP_HTML = '<span class="chip-icon"></span>';
 
 export const DEFAULT_HOTKEYS = {
   deal: "Enter",
@@ -17,7 +18,8 @@ export const DEFAULT_HOTKEYS = {
   double: "3",
   surrender: "4",
   split: "5",
-  peek: "6",
+  insurance: "6",
+  peek: "7",
   betMin: "1",
   betHalf: "2",
   betAllIn: "3",
@@ -33,7 +35,7 @@ export const ALL_RELICS = [
   {
     id: "lucky-coin",
     name: "Lucky Coin",
-    icon: "🪙",
+    icon: "<span class='chip-icon'></span>",
     desc: "Once per hand, if your first hit would bust, redraw that card with a small one.",
     hooks: { onPlayerHitBustSafe: true }
   },

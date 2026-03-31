@@ -24,7 +24,7 @@
         </div>
         <div class="stat">
           <div class="stat-label">Chips</div>
-          <div class="stat-value"><span id="chips">100</span> 🪙</div>
+          <div class="stat-value"><span id="chips">100</span> <span class="chip-icon"></span></div>
         </div>
         <div class="stat">
           <div class="stat-label">Streak</div>
@@ -80,9 +80,9 @@
         <div class="betting">
           <div>
             <div class="bet-label">Bet</div>
-            <div class="bet-display"><span id="bet">10</span> 🪙</div>
+            <div class="bet-display"><span id="bet">10</span> <span class="chip-icon"></span></div>
           </div>
-          <input type="range" id="betRange" min="5" max="100" step="5" value="10">
+          <input type="range" id="betRange" min="0" max="100" step="5" value="10">
           <div class="bet-quick">
             <button class="pill" data-bet="min">Min</button>
             <button class="pill" data-bet="half">Half</button>
@@ -97,6 +97,7 @@
           <button id="doubleBtn" disabled>Double</button>
           <button id="surrenderBtn" disabled>Surrender</button>
           <button id="splitBtn" disabled>Split</button>
+          <button id="insuranceBtn" disabled>Insurance</button>
           <button id="peekBtn" class="ghost" style="display:none">Peek 👁️</button>
         </div>
 
@@ -118,14 +119,19 @@
   <div id="resultModal" class="modal hidden">
     <div class="modal-content">
       <h3 id="resultTitle">Hand Result</h3>
-      <div class="result-rows">
-        <div class="result-row">
-          <div id="resultMainText" class="result-text label">Win +10</div>
-          <div id="resultChipTotal" class="value">110 🪙</div>
-        </div>
-        <div id="resultStarsRow" class="result-row" style="display:none">
-          <div id="resultStarsText" class="label">Stars +1</div>
-          <div id="resultStarTotal" class="value">2 ✨</div>
+      <div class="modal-body">
+        <div class="result-rows">
+          <div class="result-row">
+            <div id="resultMainText" class="result-text label">Win +10</div>
+            <div id="resultChipTotal" class="value">110 <span class="chip-icon"></span></div>
+          </div>
+          <div id="resultStarsRow" class="result-row" style="display:none">
+            <div id="resultStarsText" class="label">Stars +1</div>
+            <div id="resultStarTotal" class="value">2 ✨</div>
+          </div>
+          <div id="resultInsuranceRow" class="result-row" style="display:none">
+            <div id="resultInsuranceText" class="result-text label">Insurance +5</div>
+          </div>
         </div>
       </div>
       <div class="modal-buttons">
@@ -139,8 +145,10 @@
   <div id="relicModal" class="modal hidden">
     <div class="modal-content">
       <h3>Choose a Relic</h3>
-      <p id="relicModalDesc">You’ve earned 3 ✨ Stars! Pick a relic to power up your run.</p>
-      <div id="relicChoices" class="relic-choices"></div>
+      <div class="modal-body">
+        <p id="relicModalDesc">You've earned 3 ✨ Stars! Pick a relic to power up your run.</p>
+        <div id="relicChoices" class="relic-choices"></div>
+      </div>
       <button id="skipRelic" class="ghost">Skip</button>
     </div>
   </div>
@@ -149,8 +157,10 @@
   <div id="gameOverModal" class="modal hidden">
     <div class="modal-content">
       <h3>Game Over</h3>
-      <p id="gameOverMessage">You ran out of chips.</p>
-      <p>Best Chips: <strong id="finalHighScore">0</strong></p>
+      <div class="modal-body">
+        <p id="gameOverMessage">You ran out of chips.</p>
+        <p>Best Chips: <strong id="finalHighScore">0</strong></p>
+      </div>
       <div class="modal-buttons">
         <button id="restartBtn" class="primary">Start New Run</button>
       </div>
@@ -161,12 +171,14 @@
   <div id="menuModal" class="modal hidden">
     <div class="modal-content">
       <h3>Menu</h3>
-      <div class="relic-choices">
-        <button id="menuNewRunBtn">New Run</button>
-        <button id="menuRelicsBtn">Relics</button>
-        <button id="menuHotkeysBtn">Hotkeys</button>
-        <button id="menuOptionsBtn">Options</button>
-        <button id="menuResumeBtn" class="primary">Resume</button>
+      <div class="modal-body">
+        <div class="relic-choices">
+          <button id="menuNewRunBtn">New Run</button>
+          <button id="menuRelicsBtn">Relics</button>
+          <button id="menuHotkeysBtn">Hotkeys</button>
+          <button id="menuOptionsBtn">Options</button>
+          <button id="menuResumeBtn" class="primary">Resume</button>
+        </div>
       </div>
       <div id="menuSeedRow" class="seed-display">
         <span class="seed-label">Seed:</span>
@@ -180,28 +192,30 @@
   <div id="newRunModal" class="modal hidden">
     <div class="modal-content">
       <h3>New Run</h3>
-      <div class="new-run-options">
-        <div class="new-run-option">
-          <label class="toggle-label">
-            <span>Relics &amp; Stars</span>
-            <div class="toggle-switch">
-              <input type="checkbox" id="newRunRelicsToggle" checked>
-              <span class="toggle-slider"></span>
-            </div>
-          </label>
-          <p class="option-desc">Enable relics and stars for a roguelike experience, or disable for classic blackjack.</p>
-        </div>
-        <div class="new-run-option">
-          <label for="newRunSeed" class="option-label">Seeded Run</label>
-          <div class="seed-input-row">
-            <input type="text" id="newRunSeed" placeholder="Leave blank for random" maxlength="16" autocomplete="off" spellcheck="false">
+      <div class="modal-body">
+        <div class="new-run-options">
+          <div class="new-run-option">
+            <label class="toggle-label">
+              <span>Relics &amp; Stars</span>
+              <div class="toggle-switch">
+                <input type="checkbox" id="newRunRelicsToggle" checked>
+                <span class="toggle-slider"></span>
+              </div>
+            </label>
+            <p class="option-desc">Enable relics and stars for a roguelike experience, or disable for classic blackjack.</p>
           </div>
-          <p class="option-desc">Enter a seed to replay a specific run.</p>
+          <div class="new-run-option">
+            <label for="newRunSeed" class="option-label">Seeded Run</label>
+            <div class="seed-input-row">
+              <input type="text" id="newRunSeed" placeholder="Leave blank for random" maxlength="16" autocomplete="off" spellcheck="false">
+            </div>
+            <p class="option-desc">Enter a seed to replay a specific run. Seeded runs disable highscores.</p>
+          </div>
         </div>
       </div>
       <div class="modal-buttons">
-        <button id="newRunStartBtn" class="primary">Start Run</button>
         <button id="newRunBackBtn" class="ghost">Back</button>
+        <button id="newRunStartBtn" class="primary">Start Run</button>
       </div>
     </div>
   </div>
@@ -215,9 +229,13 @@
         <button id="relicTabAll" class="relic-tab">All</button>
       </div>
       <p id="relicListDesc">Relics you've collected this run.</p>
-      <div id="currentRelicsList" class="relics-list scrollable"></div>
-      <div id="allRelicsList" class="relics-list scrollable" style="display:none"></div>
-      <button id="closeRelicListBtn">Close</button>
+      <div class="modal-body">
+        <div id="currentRelicsList" class="relics-list"></div>
+        <div id="allRelicsList" class="relics-list" style="display:none"></div>
+      </div>
+      <div class="modal-buttons">
+        <button id="closeRelicListBtn" class="ghost">Back</button>
+      </div>
     </div>
   </div>
 
@@ -226,12 +244,35 @@
     <div class="modal-content">
       <h3>Keyboard Hotkeys</h3>
       <p>Click a key to rebind it.</p>
-      <div id="hotkeysList" class="relics-list scrollable">
-        <!-- Content generated by JS -->
+      <div id="hotkeyTabs" class="relic-tabs">
+        <button class="relic-tab hotkey-tab active" data-hotkey-cat="all">All</button>
+        <button class="relic-tab hotkey-tab" data-hotkey-cat="Betting">Betting</button>
+        <button class="relic-tab hotkey-tab" data-hotkey-cat="Player">Player</button>
+        <button class="relic-tab hotkey-tab" data-hotkey-cat="Result">Result</button>
+        <button class="relic-tab hotkey-tab" data-hotkey-cat="Relic Choice">Relic</button>
+      </div>
+      <div class="modal-body">
+        <div id="hotkeysList" class="relics-list">
+          <!-- Content generated by JS -->
+        </div>
       </div>
       <div class="modal-buttons">
+        <button id="closeHotkeysBtn" class="ghost">Back</button>
         <button id="resetHotkeysBtn" class="ghost">Reset Defaults</button>
-        <button id="closeHotkeysBtn" class="primary">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm Modal -->
+  <div id="confirmModal" class="modal hidden">
+    <div class="modal-content">
+      <h3>Confirm</h3>
+      <div class="modal-body">
+        <p id="confirmMessage">Are you sure?</p>
+      </div>
+      <div class="modal-buttons">
+        <button id="confirmCancelBtn" class="ghost">Cancel</button>
+        <button id="confirmOkBtn" class="primary">Confirm</button>
       </div>
     </div>
   </div>
@@ -240,7 +281,7 @@
   <div id="optionsModal" class="modal hidden">
     <div class="modal-content">
       <h3>Options</h3>
-      <div class="options-list">
+      <div class="modal-body">
         <div class="option-group">
           <div class="option-group-label">Betting Style</div>
           <p class="option-desc">Choose how the quick-bet buttons below the slider behave.</p>
@@ -273,6 +314,26 @@
           </div>
         </div>
         <div class="option-group">
+          <div class="option-group-label">Button Confirm</div>
+          <p class="option-desc">Choose whether actions execute immediately or require a confirmation press.</p>
+          <div class="radio-options">
+            <label class="radio-option">
+              <input type="radio" name="confirmMode" value="single" checked>
+              <div class="radio-content">
+                <span class="radio-name">Single Press</span>
+                <span class="radio-desc">Buttons activate on first click or key press.</span>
+              </div>
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="confirmMode" value="double">
+              <div class="radio-content">
+                <span class="radio-name">Double Press</span>
+                <span class="radio-desc">First press selects the button, second press confirms.</span>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="option-group">
           <div class="option-group-label">Display</div>
           <label class="toggle-option">
             <input type="checkbox" id="showLastResultToggle" checked>
@@ -282,7 +343,7 @@
         </div>
       </div>
       <div class="modal-buttons">
-        <button id="closeOptionsBtn" class="primary">Close</button>
+        <button id="closeOptionsBtn" class="ghost">Back</button>
       </div>
     </div>
   </div>
