@@ -1,5 +1,6 @@
 import { state, handTotal, hasRelic } from './state.js';
 import { MAX_BET } from './constants.js';
+import { playCardSlide } from './sfx.js';
 
 export const $ = (sel) => document.querySelector(sel);
 export const $$ = (sel) => document.querySelectorAll(sel);
@@ -203,9 +204,29 @@ export function revealDealerCard() {
   ui.dealerTotalEl.textContent = `Total: ${handTotal(state.dealerHand).total}`;
 }
 
-export function updateTopbar() {
+// Track previous chip value for detecting changes in updateTopbar
+let _prevChips = null;
+
+/** Reset chip tracking so the next updateTopbar won't animate (use on new run / init) */
+export function resetChipTracking() {
+  _prevChips = null;
+}
+
+export function updateTopbar(skipAnimation = false) {
+  const oldChips = _prevChips;
+  _prevChips = state.chips;
+
   ui.minBetEl.textContent = state.minBet;
-  ui.chipsEl.textContent = state.chips;
+
+  // Animate chip changes if the value actually changed
+  const chipDelta = (oldChips !== null && !skipAnimation) ? state.chips - oldChips : 0;
+  if (chipDelta !== 0) {
+    // Don't set textContent directly — let the counter animate it
+    animateStatChange(ui.chipsEl, oldChips, state.chips);
+  } else {
+    ui.chipsEl.textContent = state.chips;
+  }
+
   ui.betEl.textContent = state.bet;
   ui.streakEl.textContent = `${state.streak} 🔥`;  // Added flame emoji for win streak
   ui.starsEl.textContent = state.stars;
@@ -225,6 +246,77 @@ export function updateTopbar() {
   ui.betRange.min = "0";
   ui.betRange.max = Math.min(MAX_BET, state.chips).toString();
   ui.betRange.value = String(Math.min(state.bet, Number(ui.betRange.max)));
+}
+
+// Active counting animations keyed by element — used to cancel overlapping counts
+const _activeCounters = new Map();
+
+/**
+ * Animate a stat value change: show a floating delta and incrementally count to the new value.
+ *   el        – the <span> element displaying the number (e.g. ui.chipsEl)
+ *   fromValue – the previous numeric value
+ *   toValue   – the target numeric value
+ */
+export function animateStatChange(el, fromValue, toValue) {
+  const delta = toValue - fromValue;
+  if (delta === 0) return;
+
+  // Prefer alignment to the actual chips value text so the delta appears directly beneath it.
+  const chipsRect = el.getBoundingClientRect();
+  if (!chipsRect) return;
+
+  // --- floating delta label (appended to body with position: fixed) ---
+  const floater = document.createElement('span');
+  floater.className = 'stat-delta'
+    + (delta < 0 ? ' subtract negative' : ' add positive');
+  floater.textContent = (delta > 0 ? '+' : '') + delta;
+  floater.style.left = (chipsRect.left + chipsRect.width / 2) + 'px';
+  floater.style.top = (chipsRect.bottom + 2) + 'px';
+  document.body.appendChild(floater);
+  floater.addEventListener('animationend', () => floater.remove());
+
+  // --- incremental counter ---
+  // Cancel any in-progress count on this element
+  if (_activeCounters.has(el)) {
+    cancelAnimationFrame(_activeCounters.get(el));
+    _activeCounters.delete(el);
+  }
+
+  const startValue = fromValue;
+  const endValue = toValue;
+  const diff = endValue - startValue;
+  const totalSteps = Math.min(Math.abs(diff), 40); // cap to keep it fast
+  const stepSize = diff / totalSteps;
+  const stepDuration = Math.max(15, 400 / totalSteps); // total ~400ms
+  let step = 0;
+  let last = performance.now();
+
+  // For additions, delay the count-up to sync with the float-up animation
+  const delayMs = delta > 0 ? 500 : 0;
+  const startTime = performance.now() + delayMs;
+
+  // Set initial display
+  el.textContent = startValue;
+
+  function tick(now) {
+    if (now < startTime) {
+      _activeCounters.set(el, requestAnimationFrame(tick));
+      return;
+    }
+    if (now - last >= stepDuration) {
+      step++;
+      last = now;
+      const current = step >= totalSteps ? endValue : Math.round(startValue + stepSize * step);
+      el.textContent = current;
+    }
+    if (step < totalSteps) {
+      _activeCounters.set(el, requestAnimationFrame(tick));
+    } else {
+      el.textContent = endValue;
+      _activeCounters.delete(el);
+    }
+  }
+  _activeCounters.set(el, requestAnimationFrame(tick));
 }
 
 export function setTotalsStyles(outcome) {
@@ -254,6 +346,29 @@ function setMessage(elem, msg) {
 
 export function showHint(msg) {
   setMessage(ui.hintEl, msg);
+}
+
+/** Build and display a hint listing only the currently available player actions */
+export function showPlayerHint() {
+  const moves = ["Hit", "Stand"];
+  if (state.flags.canDouble && state.playerHand.length === 2 && state.chips >= state.bet)
+    moves.push("Double");
+  if (state.flags.canSurrender)
+    moves.push("Surrender");
+
+  const totalHands = Math.max(1, state.splitHandIndex) + state.splitHands.length;
+  const hasPair = state.playerHand.length === 2
+    && state.playerHand[0]?.value === state.playerHand[1]?.value;
+  if (hasPair && totalHands < 4 && state.chips >= state.bet)
+    moves.push("Split");
+
+  const canInsurance = !state.insuranceTaken && state.playerHand.length === 2
+    && state.dealerHand.length === 2 && state.dealerHand[0].rank === "A"
+    && Math.floor(state.bet / 2) > 0 && state.chips >= Math.floor(state.bet / 2);
+  if (canInsurance)
+    moves.push("Insurance");
+
+  showHint("Your move: " + moves.join(", ") + ".");
 }
 
 export function toast(msg) {
@@ -429,6 +544,7 @@ export function dealToSplitHand(splitIndex, card) {
   if (!handDiv) return;
 
   const el = createCardEl(card);
+  playCardSlide();
   const shoe = document.querySelector('.deck-stack');
   if (shoe) {
     const shoeRect = shoe.getBoundingClientRect();
@@ -474,6 +590,7 @@ function animateMove(el, fromRect) {
  * Returns the slot element so the caller can chain a deal animation afterwards.
  */
 export function animateCardToSplitArea(hand, splitIndex) {
+  playCardSlide();
   // Grab the current position of the last card in the player hand (the one being moved)
   const playerCards = ui.playerHandEl.children;
   const movingEl = playerCards[playerCards.length - 1];
@@ -501,6 +618,7 @@ export function animateCardToSplitArea(hand, splitIndex) {
  * Captures positions from the slot, renders cards into playerHandEl, then animates.
  */
 export function animateCardsToPlayerArea(cards) {
+  playCardSlide();
   // Capture where the cards currently are in the split slot before we change anything
   // We need to find the slot that's about to be removed (index 0 since we shift)
   const slot = ui.splitHandsContainer.querySelector('[data-split-index="0"]');

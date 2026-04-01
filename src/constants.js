@@ -118,5 +118,11 @@ export const ALL_RELICS = [
     name: "Martingale Master",
     icon: "📈",
     desc: "A winning hand with a bet of at least double that of your previous lost bet, pays 3:2 instead of 1:1."
+  },
+  {
+    id: "insurance-fraud",
+    name: "Insurance Fraud",
+    icon: "💼",
+    desc: "Insurance pays out if the dealer has any winning hand, not just a blackjack."
   }
 ];

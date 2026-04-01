@@ -74,6 +74,11 @@
           </div>
         </div>
         <div id="lastResult" class="last-result" style="display:none"></div>
+        <div id="musicBar" class="music-bar">
+          <span id="musicNowPlaying" class="music-now-playing"></span>
+          <button id="musicSkipBtn" class="music-btn" title="Skip">⏭</button>
+          <button id="musicMuteBtn" class="music-btn" title="Mute/Unmute">🔊</button>
+        </div>
       </section>
 
       <div class="controls">
@@ -340,6 +345,31 @@
             <span class="toggle-label">Last Result</span>
             <span class="toggle-desc">Show a chip gain/loss summary from the previous hand during betting.</span>
           </label>
+        </div>
+
+        <div class="option-group">
+          <div class="option-group-label">Audio</div>
+          <div class="volume-row">
+            <label class="volume-label" for="musicVolume">Music</label>
+            <input type="range" id="musicVolume" min="0" max="100" value="50" class="volume-slider">
+            <span id="musicVolumeVal" class="volume-val">50</span>
+          </div>
+          <div class="volume-row">
+            <label class="volume-label" for="sfxVolume">SFX</label>
+            <input type="range" id="sfxVolume" min="0" max="100" value="50" class="volume-slider">
+            <span id="sfxVolumeVal" class="volume-val">50</span>
+          </div>
+          <label class="toggle-option">
+            <input type="checkbox" id="shuffleToggle">
+            <span class="toggle-label">Shuffle</span>
+            <span class="toggle-desc">Randomize playback order instead of playing songs in sequence.</span>
+          </label>
+        </div>
+
+        <div class="option-group">
+          <div class="option-group-label">Soundtrack</div>
+          <p class="option-desc">Choose which songs are included in the music rotation.</p>
+          <div id="songList" class="song-list"></div>
         </div>
       </div>
       <div class="modal-buttons">

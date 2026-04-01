@@ -1,6 +1,7 @@
 import { state, handTotal, isBlackjack, hasRelic, getRelicHookValue, resetHandFlags, shuffleInPlace } from './state.js';
-import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderRelicsList, renderSplitHands, dealToSplitHand, animateCardToSplitArea } from './ui.js';
+import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, showPlayerHint, toast, createCardEl, renderRelicsList, renderSplitHands, dealToSplitHand, animateCardToSplitArea } from './ui.js';
 import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET, CHIP_HTML } from './constants.js';
+import { playCardSlide } from './sfx.js';
 
 export function newShuffledDeck() {
   const deck = [];
@@ -17,6 +18,7 @@ export function drawTo(hand, hidden = false) {
   hand.push(card);
   const container = (hand === state.playerHand) ? ui.playerHandEl : ui.dealerHandEl;
   const el = createCardEl(card, hidden);
+  playCardSlide();
 
   // Calculate animation offset from shoe to target position
   const shoe = document.querySelector('.deck-stack');
@@ -121,12 +123,11 @@ export function startHand() {
 
         if (dealerShowsAce && !playerBJ) {
           // Offer insurance before checking dealer blackjack
-          const splitHint = state.flags.canSplit ? ", Split" : "";
-          showHint("Dealer shows Ace — Hit, Stand, Double, Surrender, Insurance" + splitHint + ".");
+          state.flags.canSplit = state.playerHand[0].value === state.playerHand[1].value;
+          showPlayerHint();
           setPhaseControls();
         } else {
-          const splitHint = state.flags.canSplit ? ", or Split" : "";
-          showHint("Your move: Hit, Stand, Double, Surrender" + splitHint + ".");
+          showPlayerHint();
           setPhaseControls();
 
           const dealerBJ = isBlackjack(state.dealerHand);
@@ -162,18 +163,41 @@ export function onHit() {
     state.flags.usedLuckyCoinThisHand = true;
     ui.playerHandEl.lastElementChild.classList.add("shake");
     setTimeout(() => {
-      state.playerHand.pop();
+      const bustedCard = state.playerHand.pop();
       ui.playerHandEl.removeChild(ui.playerHandEl.lastElementChild);
+
+      // Put the busted card back into the shoe and reshuffle.
+      state.deck.push(bustedCard);
+      state.deck = shuffleInPlace(state.deck);
+
+      // Prefer to draw a small card (2-5) from the shoe; if none, deal whatever is next.
       const smallRanks = ["2", "3", "4", "5"];
-      const r = smallRanks[Math.floor(Math.random() * smallRanks.length)];
-      const s = SUITS[Math.floor(Math.random() * SUITS.length)];
-      const replacement = { suit: s, rank: r, value: RANK_VALUE(r) };
-      state.playerHand.push(replacement);
-      ui.playerHandEl.appendChild(createCardEl(replacement));
-      ui.playerTotalEl.textContent = `Total: ${handTotal(state.playerHand).total}`;
+      const smallIndex = state.deck.findIndex(c => smallRanks.includes(c.rank));
+      if (smallIndex >= 0) {
+        const smallCard = state.deck.splice(smallIndex, 1)[0];
+        state.deck.push(smallCard);
+      }
+
+      // Deal replacement card with standard animation from the shoe.
+      drawTo(state.playerHand);
       showHint("Lucky Coin saved you from a bust!");
-      state.phase = "player";
-      setPhaseControls();
+
+      const afterLucky = handTotal(state.playerHand).total;
+      if (afterLucky > 21) {
+        showHint("Lucky Coin couldn't save you this time.");
+        setTimeout(() => {
+          ui.playerHandEl.classList.add("shake");
+          setTimeout(() => ui.playerHandEl.classList.remove("shake"), 250);
+          standOrBust();
+        }, ANIM_DELAY);
+        return;
+      }
+
+      setTimeout(() => {
+        state.phase = "player";
+        setPhaseControls();
+        showPlayerHint();
+      }, ANIM_DELAY);
     }, 180);
     return;
   }
@@ -190,6 +214,7 @@ export function onHit() {
     setTimeout(() => {
       state.phase = "player";
       setPhaseControls();
+      showPlayerHint();
     }, ANIM_DELAY);
   }
 }
@@ -359,6 +384,7 @@ function dealerPlay() {
     setTimeout(() => {
       state.dealerHand.push(card);
       const el = createCardEl(card);
+      playCardSlide();
 
       // Animate from shoe
       const shoe = document.querySelector('.deck-stack');
@@ -485,12 +511,13 @@ export function endHand(outcome, opts = {}) {
   // Settle insurance bet (only once, on the first hand settlement)
   if (state.insuranceTaken && state.insurancePayout === 0 && !state._insuranceSettled) {
     state._insuranceSettled = true;
-    if (isBlackjack(state.dealerHand)) {
-      // Dealer has blackjack — insurance pays 2:1 (profit = 2 × side bet)
-      state.insurancePayout = state.insuranceBet * 2;
-      state.chips += state.insuranceBet + state.insurancePayout; // return side bet + 2:1 winnings
+    const insurancePays = hasRelic("insurance-fraud") ? (outcome === "lose") : isBlackjack(state.dealerHand);
+    if (insurancePays) {
+      // Insurance pays 2:1 (profit = 2 × side bet), but for odd main bets we add the rounding remainder so player doesn't lose 1 chip.
+      state.insurancePayout = state.insuranceBet * 2 + ((state.bet % 2 === 1) ? 1 : 0);
+      state.chips += state.insuranceBet + state.insurancePayout; // return side bet + payout
     }
-    // If dealer doesn't have blackjack, the side bet is already deducted
+    // If insurance doesn't pay, the side bet is already deducted
   }
 
   // Track per-hand result for split display

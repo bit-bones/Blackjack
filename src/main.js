@@ -1,10 +1,48 @@
 import { state, resetHandFlags, handTotal, generateSeed, initRng } from './state.js';
-import { ui, updateTopbar, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea, updateBetButtons, showConfirmModal, clearConfirmStates, updateModalBounds } from './ui.js';
+import { ui, updateTopbar, resetChipTracking, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea, updateBetButtons, showConfirmModal, clearConfirmStates, updateModalBounds } from './ui.js';
 import { onDeal, onHit, onStand, onSplit, onInsurance, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo, checkDealerBlackjack } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
+import { setSfxVolume, getSfxVolume } from './sfx.js';
+import { getTracks, setTrackEnabled, setMusicVolume, getMusicVolume, setShuffle, getShuffle, skip, toggleMute, isMuted, onTrackChange } from './music.js';
+
+// --- Options persistence ---------------------------------------------------
+const OPTIONS_KEY = 'bjrl-options';
+
+function saveOptions() {
+  const data = {
+    bettingStyle: state.bettingStyle,
+    unitSize: state.unitSize,
+    confirmMode: state.confirmMode,
+    showLastResult: state.showLastResult,
+    musicVolume: getMusicVolume(),
+    sfxVolume: getSfxVolume(),
+    shuffle: getShuffle(),
+    disabledTracks: getTracks().filter(t => !t.enabled).map(t => t.id),
+  };
+  localStorage.setItem(OPTIONS_KEY, JSON.stringify(data));
+}
+
+function loadOptions() {
+  try {
+    const raw = localStorage.getItem(OPTIONS_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.bettingStyle) state.bettingStyle = data.bettingStyle;
+    if (typeof data.unitSize === 'number' && data.unitSize > 0) state.unitSize = data.unitSize;
+    if (data.confirmMode) state.confirmMode = data.confirmMode;
+    if (typeof data.showLastResult === 'boolean') state.showLastResult = data.showLastResult;
+    if (typeof data.musicVolume === 'number') setMusicVolume(data.musicVolume);
+    if (typeof data.sfxVolume === 'number') setSfxVolume(data.sfxVolume);
+    if (typeof data.shuffle === 'boolean') setShuffle(data.shuffle);
+    if (Array.isArray(data.disabledTracks)) {
+      data.disabledTracks.forEach(id => setTrackEnabled(id, false));
+    }
+  } catch (_) { /* ignore corrupt data */ }
+}
 
 function init() {
+  loadOptions();
   state.minBet = 5;
   if (!state.seed) initRng(generateSeed());
   updateTopbar();
@@ -116,6 +154,7 @@ const gameActions = {
     resetHandFlags();
     // ensure phase is set before rendering so totals / face-down logic is correct
     state.phase = "betting";
+    resetChipTracking();
     renderRelicsList(); updateTopbar(); renderHands();
     // explicitly clear DOM and totals to be safe
     ui.dealerHandEl.innerHTML = ""; ui.playerHandEl.innerHTML = "";
@@ -127,7 +166,7 @@ const gameActions = {
     setPhaseControls(); showHint("New run! Adjust bet and press Deal.");
     };
     if (needsConfirm) {
-      showConfirmModal("Start new run? Current run will be lost.", doStart);
+      showConfirmModal("Start new run? Current progress will be lost.", doStart);
     } else {
       doStart();
     }
@@ -336,6 +375,35 @@ document.querySelectorAll(".pill").forEach(btn => {
 });
 
 // Options modal wiring
+const musicVolumeSlider = document.getElementById('musicVolume');
+const musicVolumeVal    = document.getElementById('musicVolumeVal');
+const sfxVolumeSlider   = document.getElementById('sfxVolume');
+const sfxVolumeVal      = document.getElementById('sfxVolumeVal');
+const shuffleToggle     = document.getElementById('shuffleToggle');
+const songListEl        = document.getElementById('songList');
+
+function renderSongList() {
+  songListEl.innerHTML = '';
+  getTracks().forEach(track => {
+    const row = document.createElement('label');
+    row.className = 'song-row' + (track.enabled ? '' : ' disabled');
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.checked = track.enabled;
+    cb.addEventListener('change', () => {
+      setTrackEnabled(track.id, cb.checked);
+      row.classList.toggle('disabled', !cb.checked);
+      saveOptions();
+    });
+    const info = document.createElement('div');
+    info.className = 'song-info';
+    info.innerHTML = `<span class="song-title">${track.title}</span><span class="song-artist">${track.artist}</span>`;
+    row.appendChild(cb);
+    row.appendChild(info);
+    songListEl.appendChild(row);
+  });
+}
+
 ui.menuOptionsBtn.addEventListener("click", () => {
   ui.menuModal.classList.add("hidden");
   // Sync radio buttons with current state
@@ -346,6 +414,13 @@ ui.menuOptionsBtn.addEventListener("click", () => {
   ui.unitSizeInput.value = state.unitSize;
   ui.unitSizeRow.style.display = state.bettingStyle === "units" ? "" : "none";
   ui.showLastResultToggle.checked = state.showLastResult;
+  // Sync audio controls
+  musicVolumeSlider.value = Math.round(getMusicVolume() * 100);
+  musicVolumeVal.textContent = musicVolumeSlider.value;
+  sfxVolumeSlider.value = Math.round(getSfxVolume() * 100);
+  sfxVolumeVal.textContent = sfxVolumeSlider.value;
+  shuffleToggle.checked = getShuffle();
+  renderSongList();
   ui.optionsModal.classList.remove("hidden");
 });
 document.querySelectorAll('input[name="bettingStyle"]').forEach(radio => {
@@ -353,6 +428,7 @@ document.querySelectorAll('input[name="bettingStyle"]').forEach(radio => {
     state.bettingStyle = e.target.value;
     ui.unitSizeRow.style.display = state.bettingStyle === "units" ? "" : "none";
     updateBetButtons();
+    saveOptions();
   });
 });
 document.querySelectorAll('input[name="confirmMode"]').forEach(radio => {
@@ -360,6 +436,7 @@ document.querySelectorAll('input[name="confirmMode"]').forEach(radio => {
     state.confirmMode = e.target.value;
     clearConfirmStates();
     pendingConfirmBtn = null;
+    saveOptions();
   });
 });
 ui.unitSizeInput.addEventListener("change", () => {
@@ -367,6 +444,7 @@ ui.unitSizeInput.addEventListener("change", () => {
   if (val > 0) {
     state.unitSize = val;
     updateBetButtons();
+    saveOptions();
   } else {
     ui.unitSizeInput.value = state.unitSize;
   }
@@ -374,10 +452,48 @@ ui.unitSizeInput.addEventListener("change", () => {
 ui.showLastResultToggle.addEventListener("change", () => {
   state.showLastResult = ui.showLastResultToggle.checked;
   setPhaseControls();
+  saveOptions();
+});
+musicVolumeSlider.addEventListener("input", () => {
+  const v = Number(musicVolumeSlider.value);
+  musicVolumeVal.textContent = v;
+  setMusicVolume(v / 100);
+  saveOptions();
+});
+sfxVolumeSlider.addEventListener("input", () => {
+  const v = Number(sfxVolumeSlider.value);
+  sfxVolumeVal.textContent = v;
+  setSfxVolume(v / 100);
+  saveOptions();
+});
+shuffleToggle.addEventListener("change", () => {
+  setShuffle(shuffleToggle.checked);
+  saveOptions();
 });
 ui.closeOptionsBtn.addEventListener("click", () => {
   ui.optionsModal.classList.add("hidden");
   ui.menuModal.classList.remove("hidden");
+});
+
+// Music controller bar
+const musicMuteBtn    = document.getElementById('musicMuteBtn');
+const musicSkipBtn    = document.getElementById('musicSkipBtn');
+const musicNowPlaying = document.getElementById('musicNowPlaying');
+let _nowPlayingTimer  = null;
+
+musicMuteBtn.addEventListener('click', () => {
+  const muted = toggleMute();
+  musicMuteBtn.textContent = muted ? '🔈' : '🔊';
+});
+musicSkipBtn.addEventListener('click', () => skip());
+
+onTrackChange(track => {
+  musicNowPlaying.textContent = `${track.artist} – ${track.title}`;
+  musicNowPlaying.classList.add('visible');
+  clearTimeout(_nowPlayingTimer);
+  _nowPlayingTimer = setTimeout(() => {
+    musicNowPlaying.classList.remove('visible');
+  }, 4000);
 });
 
 function renderAllRelicsList() {
