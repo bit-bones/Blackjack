@@ -5,9 +5,9 @@
 const FADE_DURATION = 2; // seconds for fade-in / fade-out
 
 const TRACK_LIST = [
-  { artist: 'omfgdude', title: 'CVP701Jam',   src: 'assets/music/omfgdude/CVP701Jam.ogg', gain: 1.0 },
-  { artist: '21 On The Block', title: 'Funky Diesel', src: 'assets/music/21 On The Block/funky-diesel-21-on-the-block-main-version-44571-01-40.mp3', gain: 0.5 },
-  { artist: '21 On The Block', title: 'Sizzle Groove', src: 'assets/music/21 On The Block/sizzle-groove-21-on-the-block-main-version-45626-01-42.mp3', gain: 0.5 },
+  { artist: 'omfgdude', title: 'CVP701Jam',   src: 'assets/music/omfgdude/CVP701Jam.ogg', gain: 0.8 },
+  { artist: '21 On The Block', title: 'Funky Diesel', src: 'assets/music/21 On The Block/funky-diesel-21-on-the-block-main-version-44571-01-40.mp3', gain: 0.4 },
+  { artist: '21 On The Block', title: 'Sizzle Groove', src: 'assets/music/21 On The Block/sizzle-groove-21-on-the-block-main-version-45626-01-42.mp3', gain: 0.4 },
   { artist: 'Joth',     title: 'Funked Up',   src: 'assets/music/Joth/Funked Up.mp3', gain: 0.3 },
   { artist: 'Stan Town', title: 'Groove Sauce', src: 'assets/music/Stan Town/groove-sauce-stan-town-main-version-40277-01-56.mp3', gain: 0.3 }
 ];
@@ -56,15 +56,28 @@ function effectiveVolume() {
 }
 
 function fadeIn(audio, dur = FADE_DURATION) {
-  const target = effectiveVolume();
   audio.volume = 0;
   const step = 0.02;
-  const interval = (dur * 1000 * step) / Math.max(target, 0.01);
-  const id = setInterval(() => {
+  let id = null;
+
+  const tick = () => {
+    const target = effectiveVolume();
+    // Maintain the fade progress toward the current target in real time.
     const next = Math.min(audio.volume + step * target, target);
     audio.volume = next;
-    if (next >= target) clearInterval(id);
-  }, interval);
+    if (next >= target || target <= 0) {
+      clearInterval(id);
+      audio._fadeInId = null;
+    }
+  };
+
+  const interval = () => {
+    const target = Math.max(effectiveVolume(), 0.01);
+    return (dur * 1000 * step) / target;
+  };
+
+  id = setInterval(tick, interval());
+  audio._fadeInId = id;
   return id;
 }
 
@@ -91,6 +104,10 @@ function fadeOut(audio, dur = FADE_DURATION) {
 /** Immediately stop and discard the current audio element */
 function killCurrent() {
   if (currentAudio) {
+    if (currentAudio._fadeInId) {
+      clearInterval(currentAudio._fadeInId);
+      currentAudio._fadeInId = null;
+    }
     currentAudio.pause();
     currentAudio.src = '';
     currentAudio = null;
@@ -162,8 +179,16 @@ export function setTrackEnabled(id, enabled) {
 
 export function setMusicVolume(v) {
   volume = Math.max(0, Math.min(1, v));
-  if (currentAudio && !currentAudio.paused) {
-    currentAudio.volume = effectiveVolume();
+  if (currentAudio) {
+    if (!currentAudio.paused) {
+      currentAudio.volume = effectiveVolume();
+    }
+    if (currentAudio._fadeInId) {
+      clearInterval(currentAudio._fadeInId);
+      currentAudio._fadeInId = null;
+      // Re-start quick fade to the new target for smoother transition.
+      currentAudio._fadeInId = fadeIn(currentAudio, 0.2);
+    }
   }
 }
 
