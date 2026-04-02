@@ -9,11 +9,21 @@ const TRACK_LIST = [
   { artist: 'Stan Town', title: 'Groove Sauce', src: 'assets/music/Stan Town/groove-sauce-stan-town-main-version-40277-01-56.mp3', gain: 0.3 },
   { artist: '21 On The Block', title: 'Sizzle Groove', src: 'assets/music/21 On The Block/sizzle-groove-21-on-the-block-main-version-45626-01-42.mp3', gain: 0.4 },
   { artist: 'Joth',     title: 'Funked Up',   src: 'assets/music/Joth/Funked Up.mp3', gain: 0.3 },
-  { artist: 'omfgdude', title: 'CVP701Jam',   src: 'assets/music/omfgdude/CVP701Jam.ogg', gain: 0.8 },
+  { artist: 'omfgdude', title: 'CVP701Jam',   src: 'assets/music/omfgdude/CVP701Jam.mp3', gain: 0.8 },
 ];
 
+// Auto-disable tracks the browser can't play
+function canPlaySrc(src) {
+  const ext = src.split('.').pop().toLowerCase();
+  const mimeMap = { mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav', aac: 'audio/aac', m4a: 'audio/mp4', webm: 'audio/webm', flac: 'audio/flac' };
+  const mime = mimeMap[ext];
+  if (!mime) return true; // unknown format – let it try
+  const a = document.createElement('audio');
+  return a.canPlayType(mime) !== '';
+}
+
 // Runtime state
-let tracks      = TRACK_LIST.map((t, i) => ({ ...t, enabled: true, id: i }));
+let tracks      = TRACK_LIST.map((t, i) => ({ ...t, enabled: canPlaySrc(t.src), id: i }));
 let queue        = [];          // indices into `tracks`
 let currentIndex = -1;          // index inside `queue`
 let currentAudio = null;
