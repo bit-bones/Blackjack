@@ -5,6 +5,7 @@ const SFX = {
 const audioPool = {};
 const POOL_SIZE = 6;
 let sfxVolume = 0.5;
+let sfxMuted = false;
 
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioContext = AudioContext ? new AudioContext() : null;
@@ -83,7 +84,16 @@ export function getSfxVolume() {
   return sfxVolume;
 }
 
+export function setSfxMuted(m) {
+  sfxMuted = m;
+}
+
+export function isSfxMuted() {
+  return sfxMuted;
+}
+
 export function playCardSlide() {
+  if (sfxMuted) return;
   // Prefer low-latency WebAudio path and fall back to HTMLAudio pool.
   if (playWebAudio('cardSlide')) return;
 

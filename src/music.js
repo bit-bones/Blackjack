@@ -5,11 +5,11 @@
 const FADE_DURATION = 2; // seconds for fade-in / fade-out
 
 const TRACK_LIST = [
-  { artist: 'omfgdude', title: 'CVP701Jam',   src: 'assets/music/omfgdude/CVP701Jam.ogg', gain: 0.8 },
   { artist: '21 On The Block', title: 'Funky Diesel', src: 'assets/music/21 On The Block/funky-diesel-21-on-the-block-main-version-44571-01-40.mp3', gain: 0.4 },
+  { artist: 'Stan Town', title: 'Groove Sauce', src: 'assets/music/Stan Town/groove-sauce-stan-town-main-version-40277-01-56.mp3', gain: 0.3 },
   { artist: '21 On The Block', title: 'Sizzle Groove', src: 'assets/music/21 On The Block/sizzle-groove-21-on-the-block-main-version-45626-01-42.mp3', gain: 0.4 },
   { artist: 'Joth',     title: 'Funked Up',   src: 'assets/music/Joth/Funked Up.mp3', gain: 0.3 },
-  { artist: 'Stan Town', title: 'Groove Sauce', src: 'assets/music/Stan Town/groove-sauce-stan-town-main-version-40277-01-56.mp3', gain: 0.3 }
+  { artist: 'omfgdude', title: 'CVP701Jam',   src: 'assets/music/omfgdude/CVP701Jam.ogg', gain: 0.8 },
 ];
 
 // Runtime state
@@ -24,6 +24,7 @@ let shuffle      = false;
 let playing      = false;
 let fadeTimer    = null;
 let muted        = false;
+let paused       = false;
 let volumeBeforeMute = 0.5;
 let _onTrackChange = null;
 
@@ -246,6 +247,21 @@ export function toggleMute() {
 
 export function isMuted() {
   return muted;
+}
+
+export function togglePause() {
+  if (!playing || !currentAudio) return false;
+  if (!currentAudio.paused) {
+    currentAudio.pause();
+    return true; // now paused
+  } else {
+    currentAudio.play().catch(() => {});
+    return false; // now playing
+  }
+}
+
+export function isPaused() {
+  return playing && currentAudio != null && currentAudio.paused;
 }
 
 export function getCurrentTrack() {

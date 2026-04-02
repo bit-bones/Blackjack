@@ -3,8 +3,8 @@ import { ui, updateTopbar, resetChipTracking, renderRelicsList, renderHands, set
 import { onDeal, onHit, onStand, onSplit, onInsurance, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo, checkDealerBlackjack } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
-import { setSfxVolume, getSfxVolume } from './sfx.js';
-import { getTracks, setTrackEnabled, setMusicVolume, getMusicVolume, setShuffle, getShuffle, skip, toggleMute, isMuted, onTrackChange } from './music.js';
+import { setSfxVolume, getSfxVolume, setSfxMuted } from './sfx.js';
+import { getTracks, setTrackEnabled, setMusicVolume, getMusicVolume, setShuffle, getShuffle, skip, toggleMute, isMuted, togglePause, isPaused, onTrackChange } from './music.js';
 
 // --- Options persistence ---------------------------------------------------
 const OPTIONS_KEY = 'bjrl-options';
@@ -477,13 +477,19 @@ ui.closeOptionsBtn.addEventListener("click", () => {
 
 // Music controller bar
 const musicMuteBtn    = document.getElementById('musicMuteBtn');
+const musicPauseBtn   = document.getElementById('musicPauseBtn');
 const musicSkipBtn    = document.getElementById('musicSkipBtn');
 const musicNowPlaying = document.getElementById('musicNowPlaying');
 let _nowPlayingTimer  = null;
 
 musicMuteBtn.addEventListener('click', () => {
   const muted = toggleMute();
-  musicMuteBtn.textContent = muted ? '🔈' : '🔊';
+  setSfxMuted(muted);
+  musicMuteBtn.textContent = muted ? '🔇' : '🔊';
+});
+musicPauseBtn.addEventListener('click', () => {
+  const paused = togglePause();
+  musicPauseBtn.textContent = paused ? '▶️' : '⏸';
 });
 musicSkipBtn.addEventListener('click', () => skip());
 
