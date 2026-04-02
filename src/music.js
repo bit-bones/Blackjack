@@ -28,6 +28,22 @@ let paused       = false;
 let volumeBeforeMute = 0.5;
 let _onTrackChange = null;
 
+// --- Web Audio API (needed for mobile volume control) ----------------------
+let audioCtx = null;
+let masterGain = null;
+
+function ensureAudioContext() {
+  if (!audioCtx) {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    masterGain = audioCtx.createGain();
+    masterGain.gain.value = volume;
+    masterGain.connect(audioCtx.destination);
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+}
+
 // --- helpers ---------------------------------------------------------------
 
 function enabledTracks() {
@@ -46,26 +62,33 @@ function buildQueue() {
 }
 
 function makeAudio(track) {
+  ensureAudioContext();
   const a = new Audio(track.src);
-  a.volume = 0;
+  a.volume = 1;          // keep at max; gain nodes handle volume
   a.preload = 'auto';
+
+  // Route through Web Audio API so volume/mute works on mobile
+  const source = audioCtx.createMediaElementSource(a);
+  const trackGain = audioCtx.createGain();
+  trackGain.gain.value = 0;   // start silent for fade-in
+  source.connect(trackGain);
+  trackGain.connect(masterGain);
+  a._source = source;
+  a._trackGain = trackGain;
   return a;
 }
 
-function effectiveVolume() {
-  return volume * currentGain;
-}
-
 function fadeIn(audio, dur = FADE_DURATION) {
-  audio.volume = 0;
+  const gain = audio._trackGain;
+  if (!gain) return null;
+  gain.gain.value = 0;
   const step = 0.02;
   let id = null;
 
   const tick = () => {
-    const target = effectiveVolume();
-    // Maintain the fade progress toward the current target in real time.
-    const next = Math.min(audio.volume + step * target, target);
-    audio.volume = next;
+    const target = currentGain;
+    const next = Math.min(gain.gain.value + step * target, target);
+    gain.gain.value = next;
     if (next >= target || target <= 0) {
       clearInterval(id);
       audio._fadeInId = null;
@@ -73,7 +96,7 @@ function fadeIn(audio, dur = FADE_DURATION) {
   };
 
   const interval = () => {
-    const target = Math.max(effectiveVolume(), 0.01);
+    const target = Math.max(currentGain, 0.01);
     return (dur * 1000 * step) / target;
   };
 
@@ -84,13 +107,14 @@ function fadeIn(audio, dur = FADE_DURATION) {
 
 function fadeOut(audio, dur = FADE_DURATION) {
   return new Promise(resolve => {
-    if (!audio || audio.paused) { resolve(); return; }
-    const startVol = audio.volume;
+    const gain = audio && audio._trackGain;
+    if (!audio || audio.paused || !gain) { resolve(); return; }
+    const startVol = gain.gain.value;
     const step = 0.02;
     const interval = (dur * 1000 * step) / Math.max(startVol, 0.01);
     const id = setInterval(() => {
-      const next = Math.max(audio.volume - step * startVol, 0);
-      audio.volume = next;
+      const next = Math.max(gain.gain.value - step * startVol, 0);
+      gain.gain.value = next;
       if (next <= 0) {
         clearInterval(id);
         audio.pause();
@@ -110,6 +134,14 @@ function killCurrent() {
       currentAudio._fadeInId = null;
     }
     currentAudio.pause();
+    if (currentAudio._source) {
+      currentAudio._source.disconnect();
+      currentAudio._source = null;
+    }
+    if (currentAudio._trackGain) {
+      currentAudio._trackGain.disconnect();
+      currentAudio._trackGain = null;
+    }
     currentAudio.src = '';
     currentAudio = null;
   }
@@ -180,17 +212,7 @@ export function setTrackEnabled(id, enabled) {
 
 export function setMusicVolume(v) {
   volume = Math.max(0, Math.min(1, v));
-  if (currentAudio) {
-    if (!currentAudio.paused) {
-      currentAudio.volume = effectiveVolume();
-    }
-    if (currentAudio._fadeInId) {
-      clearInterval(currentAudio._fadeInId);
-      currentAudio._fadeInId = null;
-      // Re-start quick fade to the new target for smoother transition.
-      currentAudio._fadeInId = fadeIn(currentAudio, 0.2);
-    }
-  }
+  if (masterGain) masterGain.gain.value = volume;
 }
 
 export function getMusicVolume() {
@@ -233,15 +255,12 @@ export function toggleMute() {
   if (muted) {
     muted = false;
     volume = volumeBeforeMute;
-    if (currentAudio && !currentAudio.paused) {
-      currentAudio.volume = effectiveVolume();
-    }
   } else {
     muted = true;
     volumeBeforeMute = volume;
     volume = 0;
-    if (currentAudio) currentAudio.volume = 0;
   }
+  if (masterGain) masterGain.gain.value = volume;
   return muted;
 }
 
@@ -279,9 +298,12 @@ let _started = false;
 function tryAutoStart() {
   if (_started) return;
   _started = true;
+  ensureAudioContext();
   start();
   document.removeEventListener('click', tryAutoStart);
   document.removeEventListener('keydown', tryAutoStart);
+  document.removeEventListener('touchstart', tryAutoStart);
 }
 document.addEventListener('click', tryAutoStart, { once: false });
 document.addEventListener('keydown', tryAutoStart, { once: false });
+document.addEventListener('touchstart', tryAutoStart, { once: false });
