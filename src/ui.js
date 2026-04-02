@@ -351,8 +351,8 @@ export function showHint(msg) {
 /** Build and display a hint listing only the currently available player actions */
 export function showPlayerHint() {
   const moves = ["Hit", "Stand"];
-  if (state.flags.canDouble && state.playerHand.length === 2 && state.chips >= state.bet)
-    moves.push("Double");
+  if (state.flags.canDouble && state.playerHand.length === 2 && state.chips >= state.bet * (hasRelic("triple-down") ? 2 : 1))
+    moves.push(hasRelic("triple-down") ? "Triple" : "Double");
   if (state.flags.canSurrender)
     moves.push("Surrender");
 
@@ -466,8 +466,10 @@ export function setPhaseControls() {
     ui.hitBtn.disabled = false;
     ui.standBtn.disabled = false;
 
-    const canDoubleNow = state.flags.canDouble && state.playerHand.length === 2 && (state.chips >= state.bet);
+    const extraBets = hasRelic("triple-down") ? 2 : 1;
+    const canDoubleNow = state.flags.canDouble && state.playerHand.length === 2 && (state.chips >= state.bet * extraBets);
     ui.doubleBtn.disabled = !canDoubleNow;
+    ui.doubleBtn.textContent = hasRelic("triple-down") ? "Triple" : "Double";
     ui.surrenderBtn.disabled = !state.flags.canSurrender;
 
     const totalHands = Math.max(1, state.splitHandIndex) + state.splitHands.length;

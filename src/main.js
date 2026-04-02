@@ -1,4 +1,4 @@
-import { state, resetHandFlags, handTotal, generateSeed, initRng } from './state.js';
+import { state, resetHandFlags, handTotal, generateSeed, initRng, hasRelic } from './state.js';
 import { ui, updateTopbar, resetChipTracking, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea, updateBetButtons, showConfirmModal, clearConfirmStates, updateModalBounds } from './ui.js';
 import { onDeal, onHit, onStand, onSplit, onInsurance, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo, checkDealerBlackjack } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
@@ -199,13 +199,15 @@ const gameActions = {
     updateTopbar(); setPhaseControls();
   },
   onDouble: () => {
-    if (state.phase !== "player" || state.chips < state.bet) return;
+    const isTriple = hasRelic("triple-down");
+    const extraBets = isTriple ? 2 : 1;
+    if (state.phase !== "player" || state.chips < state.bet * extraBets) return;
     // If dealer shows ace and BJ not yet checked, check now (player declined insurance)
     if (!state.dealerBJChecked && state.dealerHand[0].rank === "A") {
       if (checkDealerBlackjack()) return;
     }
     state.phase = "animating";
-    state.chips -= state.bet; state.bet *= 2; updateTopbar();
+    state.chips -= state.bet * extraBets; state.bet *= (1 + extraBets); updateTopbar();
     import('./actions.js').then(m => {
       m.drawTo(state.playerHand);
       setTimeout(() => {
@@ -263,7 +265,7 @@ function transitionToSplitHand() {
   if (state.playerHand.length === 2 && state.playerHand[0].value === state.playerHand[1].value && totalHands < 4) {
     state.flags.canSplit = true;
   }
-  state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+  state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet * (hasRelic("triple-down") ? 2 : 1);
 
   if (state.splitFromAces) {
     showHint("Split Aces — auto-standing.");
@@ -477,8 +479,8 @@ ui.closeOptionsBtn.addEventListener("click", () => {
 
 // Music controller bar
 const musicMuteBtn    = document.getElementById('musicMuteBtn');
-const musicPauseBtn   = document.getElementById('musicPauseBtn');
 const musicSkipBtn    = document.getElementById('musicSkipBtn');
+const musicPauseBtn   = document.getElementById('musicPauseBtn');
 const musicNowPlaying = document.getElementById('musicNowPlaying');
 let _nowPlayingTimer  = null;
 

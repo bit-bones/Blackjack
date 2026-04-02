@@ -124,5 +124,11 @@ export const ALL_RELICS = [
     name: "Insurance Fraud",
     icon: "💼",
     desc: "Insurance pays out if the dealer has any winning hand, not just a blackjack."
+  },
+  {
+    id: "triple-down",
+    name: "Triple Down",
+    icon: "3️⃣",
+    desc: "Replaces double down with triple down."
   }
 ];

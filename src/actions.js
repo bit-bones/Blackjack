@@ -284,7 +284,7 @@ export function onSplit() {
       if (state.playerHand.length === 2 && state.playerHand[0].value === state.playerHand[1].value && totalAfter < 4) {
         state.flags.canSplit = true;
       }
-      state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet;
+      state.flags.canDouble = !state.splitFromAces && state.playerHand.length === 2 && state.chips >= state.bet * (hasRelic("triple-down") ? 2 : 1);
 
       if (isAces) {
         // Can't hit after splitting aces, auto-stand
