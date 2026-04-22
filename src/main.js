@@ -3,8 +3,7 @@ import { ui, updateTopbar, resetChipTracking, renderRelicsList, renderHands, set
 import { onDeal, onHit, onStand, onSplit, onInsurance, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo, checkDealerBlackjack } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
 import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
-import { setSfxVolume, getSfxVolume, setSfxMuted } from './sfx.js';
-import { getTracks, setTrackEnabled, setMusicVolume, getMusicVolume, setShuffle, getShuffle, skip, toggleMute, isMuted, togglePause, isPaused, onTrackChange } from './music.js';
+import { setSfxVolume, getSfxVolume, setSfxMuted, isSfxMuted } from './sfx.js';
 
 // --- Options persistence ---------------------------------------------------
 const OPTIONS_KEY = 'bjrl-options';
@@ -15,10 +14,7 @@ function saveOptions() {
     unitSize: state.unitSize,
     confirmMode: state.confirmMode,
     showLastResult: state.showLastResult,
-    musicVolume: getMusicVolume(),
     sfxVolume: getSfxVolume(),
-    shuffle: getShuffle(),
-    disabledTracks: getTracks().filter(t => !t.enabled).map(t => t.id),
   };
   localStorage.setItem(OPTIONS_KEY, JSON.stringify(data));
 }
@@ -32,12 +28,7 @@ function loadOptions() {
     if (typeof data.unitSize === 'number' && data.unitSize > 0) state.unitSize = data.unitSize;
     if (data.confirmMode) state.confirmMode = data.confirmMode;
     if (typeof data.showLastResult === 'boolean') state.showLastResult = data.showLastResult;
-    if (typeof data.musicVolume === 'number') setMusicVolume(data.musicVolume);
     if (typeof data.sfxVolume === 'number') setSfxVolume(data.sfxVolume);
-    if (typeof data.shuffle === 'boolean') setShuffle(data.shuffle);
-    if (Array.isArray(data.disabledTracks)) {
-      data.disabledTracks.forEach(id => setTrackEnabled(id, false));
-    }
   } catch (_) { /* ignore corrupt data */ }
 }
 
@@ -377,34 +368,8 @@ document.querySelectorAll(".pill").forEach(btn => {
 });
 
 // Options modal wiring
-const musicVolumeSlider = document.getElementById('musicVolume');
-const musicVolumeVal    = document.getElementById('musicVolumeVal');
 const sfxVolumeSlider   = document.getElementById('sfxVolume');
 const sfxVolumeVal      = document.getElementById('sfxVolumeVal');
-const shuffleToggle     = document.getElementById('shuffleToggle');
-const songListEl        = document.getElementById('songList');
-
-function renderSongList() {
-  songListEl.innerHTML = '';
-  getTracks().forEach(track => {
-    const row = document.createElement('label');
-    row.className = 'song-row' + (track.enabled ? '' : ' disabled');
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.checked = track.enabled;
-    cb.addEventListener('change', () => {
-      setTrackEnabled(track.id, cb.checked);
-      row.classList.toggle('disabled', !cb.checked);
-      saveOptions();
-    });
-    const info = document.createElement('div');
-    info.className = 'song-info';
-    info.innerHTML = `<span class="song-title">${track.title}</span><span class="song-artist">${track.artist}</span>`;
-    row.appendChild(cb);
-    row.appendChild(info);
-    songListEl.appendChild(row);
-  });
-}
 
 ui.menuOptionsBtn.addEventListener("click", () => {
   ui.menuModal.classList.add("hidden");
@@ -417,12 +382,8 @@ ui.menuOptionsBtn.addEventListener("click", () => {
   ui.unitSizeRow.style.display = state.bettingStyle === "units" ? "" : "none";
   ui.showLastResultToggle.checked = state.showLastResult;
   // Sync audio controls
-  musicVolumeSlider.value = Math.round(getMusicVolume() * 100);
-  musicVolumeVal.textContent = musicVolumeSlider.value;
   sfxVolumeSlider.value = Math.round(getSfxVolume() * 100);
   sfxVolumeVal.textContent = sfxVolumeSlider.value;
-  shuffleToggle.checked = getShuffle();
-  renderSongList();
   ui.optionsModal.classList.remove("hidden");
 });
 document.querySelectorAll('input[name="bettingStyle"]').forEach(radio => {
@@ -456,20 +417,10 @@ ui.showLastResultToggle.addEventListener("change", () => {
   setPhaseControls();
   saveOptions();
 });
-musicVolumeSlider.addEventListener("input", () => {
-  const v = Number(musicVolumeSlider.value);
-  musicVolumeVal.textContent = v;
-  setMusicVolume(v / 100);
-  saveOptions();
-});
 sfxVolumeSlider.addEventListener("input", () => {
   const v = Number(sfxVolumeSlider.value);
   sfxVolumeVal.textContent = v;
   setSfxVolume(v / 100);
-  saveOptions();
-});
-shuffleToggle.addEventListener("change", () => {
-  setShuffle(shuffleToggle.checked);
   saveOptions();
 });
 ui.closeOptionsBtn.addEventListener("click", () => {
@@ -477,31 +428,12 @@ ui.closeOptionsBtn.addEventListener("click", () => {
   ui.menuModal.classList.remove("hidden");
 });
 
-// Music controller bar
-const musicMuteBtn    = document.getElementById('musicMuteBtn');
-const musicSkipBtn    = document.getElementById('musicSkipBtn');
-const musicPauseBtn   = document.getElementById('musicPauseBtn');
-const musicNowPlaying = document.getElementById('musicNowPlaying');
-let _nowPlayingTimer  = null;
-
-musicMuteBtn.addEventListener('click', () => {
-  const muted = toggleMute();
+// SFX mute button
+const sfxMuteBtn = document.getElementById('sfxMuteBtn');
+sfxMuteBtn.addEventListener('click', () => {
+  const muted = !isSfxMuted();
   setSfxMuted(muted);
-  musicMuteBtn.textContent = muted ? '🔇' : '🔊';
-});
-musicPauseBtn.addEventListener('click', () => {
-  const paused = togglePause();
-  musicPauseBtn.textContent = paused ? '▶️' : '⏸';
-});
-musicSkipBtn.addEventListener('click', () => skip());
-
-onTrackChange(track => {
-  musicNowPlaying.textContent = `${track.artist} – ${track.title}`;
-  musicNowPlaying.classList.add('visible');
-  clearTimeout(_nowPlayingTimer);
-  _nowPlayingTimer = setTimeout(() => {
-    musicNowPlaying.classList.remove('visible');
-  }, 4000);
+  sfxMuteBtn.textContent = muted ? '🔇' : '🔊';
 });
 
 function renderAllRelicsList() {
