@@ -105,6 +105,9 @@ export const state = {
 
   // Button confirm mode
   confirmMode: "single",  // "single" | "double"
+
+  // Animation / deal speed
+  gameSpeed: "normal",   // "fast" | "normal" | "slow"
 };
 
 export function handTotal(hand) {

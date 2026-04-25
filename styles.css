@@ -14,6 +14,9 @@
   --card-edge: #e9eef5;
   --primary: #475cfb;
   --primary-2: #81adeb;
+  /* Card animation durations — overridden by JS when game speed changes */
+  --deal-anim-duration: 0.4s;
+  --flip-anim-duration: 0.45s;
 }
 /* Poker chip icon – cross-platform SVG replacement for 🪙 */
 .chip-icon {
@@ -340,7 +343,7 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 
 /* Flip-reveal animation for dealer's hidden card */
 .card.flip-reveal{
-  animation: card-flip .45s ease-in-out both;
+  animation: card-flip var(--flip-anim-duration) ease-in-out both;
 }
 @keyframes card-flip{
   0%{ transform: scaleX(1); }
@@ -350,7 +353,7 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 }
 
 .card.deal-in{
-  animation: deal-from-deck .4s cubic-bezier(0.22, 0.68, 0.35, 1) both;
+  animation: deal-from-deck var(--deal-anim-duration) cubic-bezier(0.22, 0.68, 0.35, 1) both;
 }
 @keyframes deal-from-deck{
   0%{
@@ -367,7 +370,7 @@ button.small{ padding: 6px 10px; font-size: 14px; border-radius: 10px }
 }
 /* Move card animation — slides from one position to another */
 .card.move-card{
-  animation: move-to-position .4s cubic-bezier(0.22, 0.68, 0.35, 1) both;
+  animation: move-to-position var(--deal-anim-duration) cubic-bezier(0.22, 0.68, 0.35, 1) both;
 }
 @keyframes move-to-position{
   0%{

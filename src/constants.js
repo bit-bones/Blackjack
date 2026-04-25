@@ -11,6 +11,13 @@ export const INITIAL_CHIPS = 100;
 export const MAX_BET = 1000;
 export const CHIP_HTML = '<span class="chip-icon"></span>';
 
+// Game speed presets: mult scales all JS animation delays, *AnimSecs sets CSS animation durations.
+export const GAME_SPEED_CONFIG = {
+  fast:   { mult: 1.0,  dealAnimSecs: 0.4,  flipAnimSecs: 0.45 },
+  normal: { mult: 1.75, dealAnimSecs: 0.6,  flipAnimSecs: 0.65 },
+  slow:   { mult: 3.0,  dealAnimSecs: 0.9,  flipAnimSecs: 1.0  },
+};
+
 export const DEFAULT_HOTKEYS = {
   deal: "Enter",
   hit: "1",

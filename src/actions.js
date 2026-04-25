@@ -1,6 +1,12 @@
 import { state, handTotal, isBlackjack, hasRelic, getRelicHookValue, resetHandFlags, shuffleInPlace } from './state.js';
 import { ui, renderHands, revealDealerCard, updateTopbar, setPhaseControls, setTotalsStyles, showHint, showPlayerHint, toast, createCardEl, renderRelicsList, renderSplitHands, dealToSplitHand, animateCardToSplitArea } from './ui.js';
-import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET, CHIP_HTML } from './constants.js';
+import { SUITS, RANKS, RANK_VALUE, ALL_RELICS, INITIAL_CHIPS, MAX_BET, CHIP_HTML, GAME_SPEED_CONFIG } from './constants.js';
+
+/** Return a delay in ms scaled to the current game speed setting. */
+export function animDelay(baseMs) {
+  const cfg = GAME_SPEED_CONFIG[state.gameSpeed] || GAME_SPEED_CONFIG.normal;
+  return Math.round(baseMs * cfg.mult);
+}
 import { playCardSlide } from './sfx.js';
 
 export function newShuffledDeck() {
@@ -105,7 +111,6 @@ export function startHand() {
     () => drawTo(state.dealerHand, true),
   ];
 
-  const DELAY = 200; // ms between each card
   dealSteps.forEach((step, i) => {
     setTimeout(() => {
       step();
@@ -140,7 +145,7 @@ export function startHand() {
           }
         }
       }
-    }, i * DELAY);
+    }, i * animDelay(200));
   });
 }
 
@@ -154,8 +159,6 @@ export function onHit() {
   drawTo(state.playerHand);
   state.flags.canDouble = false;
   state.flags.canSurrender = false;
-
-  const ANIM_DELAY = 450; // let deal animation finish
 
   const after = handTotal(state.playerHand).total;
 
@@ -189,7 +192,7 @@ export function onHit() {
           ui.playerHandEl.classList.add("shake");
           setTimeout(() => ui.playerHandEl.classList.remove("shake"), 250);
           standOrBust();
-        }, ANIM_DELAY);
+        }, animDelay(450));
         return;
       }
 
@@ -197,8 +200,8 @@ export function onHit() {
         state.phase = "player";
         setPhaseControls();
         showPlayerHint();
-      }, ANIM_DELAY);
-    }, 180);
+      }, animDelay(450));
+    }, animDelay(180));
     return;
   }
 
@@ -208,14 +211,14 @@ export function onHit() {
       ui.playerHandEl.classList.add("shake");
       setTimeout(() => ui.playerHandEl.classList.remove("shake"), 250);
       standOrBust();
-    }, ANIM_DELAY);
+    }, animDelay(450));
   } else {
     // Let animation finish then re-enable controls
     setTimeout(() => {
       state.phase = "player";
       setPhaseControls();
       showPlayerHint();
-    }, ANIM_DELAY);
+    }, animDelay(450));
   }
 }
 
@@ -267,7 +270,6 @@ export function onSplit() {
   setPhaseControls();
 
   // Deal one card to current hand, then one to the new split hand
-  const DELAY = 300;
   setTimeout(() => {
     drawTo(state.playerHand);
     setTimeout(() => {
@@ -289,14 +291,14 @@ export function onSplit() {
       if (isAces) {
         // Can't hit after splitting aces, auto-stand
         showHint("Split Aces — one card each. Standing...");
-        setTimeout(() => onStand(), 400);
+        setTimeout(() => onStand(), animDelay(400));
       } else {
         const totalH = state.splitHandIndex + state.splitHands.length;
         showHint(`Play Hand ${state.splitHandIndex} of ${totalH}.`);
         setPhaseControls();
       }
-    }, 400);
-  }, DELAY);
+    }, animDelay(400));
+  }, animDelay(300));
 }
 
 export function onInsurance() {
@@ -353,11 +355,11 @@ function standOrBust() {
   revealDealerCard();
   showHint("Dealer plays...");
   setPhaseControls();
-  setTimeout(dealerPlay, 450);
+  setTimeout(dealerPlay, animDelay(450));
 }
 
 function dealerPlay() {
-  const CARD_DELAY = 500; // ms between each dealer card
+  const CARD_DELAY = animDelay(500); // ms between each dealer card
   let dt = handTotal(state.dealerHand);
 
   // Collect all cards the dealer needs to draw
@@ -409,7 +411,7 @@ function dealerPlay() {
 
       // After last card, wait for animation then settle
       if (i === cardsToDraw.length - 1) {
-        setTimeout(settle, 450);
+        setTimeout(settle, animDelay(450));
       }
     }, i * CARD_DELAY);
   });
@@ -564,7 +566,7 @@ export function endHand(outcome, opts = {}) {
   setTimeout(() => {
     const canGamble = (outcome === "win" || outcome === "blackjack") && hasRelic("double-or-nothing");
     openResultModal(outcome, info, state.chips, starGain, state.stars, canGamble, opts);
-  }, 500);
+  }, animDelay(500));
 }
 
 export function openResultModal(outcome, info, chipTotal, starGain, starTotal, canGamble = false, opts = {}) {

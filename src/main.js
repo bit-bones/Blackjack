@@ -1,12 +1,19 @@
 import { state, resetHandFlags, handTotal, generateSeed, initRng, hasRelic } from './state.js';
 import { ui, updateTopbar, resetChipTracking, renderRelicsList, renderHands, setPhaseControls, setTotalsStyles, showHint, toast, createCardEl, renderSplitHands, animateCardsToPlayerArea, updateBetButtons, showConfirmModal, clearConfirmStates, updateModalBounds } from './ui.js';
-import { onDeal, onHit, onStand, onSplit, onInsurance, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo, checkDealerBlackjack } from './actions.js';
+import { onDeal, onHit, onStand, onSplit, onInsurance, nextRound, onGamblePayout, pickRelic, getRelicChoicesIfReady, endHand, drawTo, checkDealerBlackjack, animDelay } from './actions.js';
 import { setupKeyboardListeners, renderHotkeys, resetHotkeysToDefault, hotkeys } from './hotkeys.js';
-import { INITIAL_CHIPS, ALL_RELICS, MAX_BET } from './constants.js';
+import { INITIAL_CHIPS, ALL_RELICS, MAX_BET, GAME_SPEED_CONFIG } from './constants.js';
 import { setSfxVolume, getSfxVolume, setSfxMuted, isSfxMuted } from './sfx.js';
 
 // --- Options persistence ---------------------------------------------------
 const OPTIONS_KEY = 'bjrl-options';
+
+function applyGameSpeed(speed) {
+  state.gameSpeed = speed;
+  const cfg = GAME_SPEED_CONFIG[speed] || GAME_SPEED_CONFIG.normal;
+  document.documentElement.style.setProperty('--deal-anim-duration', `${cfg.dealAnimSecs}s`);
+  document.documentElement.style.setProperty('--flip-anim-duration', `${cfg.flipAnimSecs}s`);
+}
 
 function saveOptions() {
   const data = {
@@ -15,6 +22,7 @@ function saveOptions() {
     confirmMode: state.confirmMode,
     showLastResult: state.showLastResult,
     sfxVolume: getSfxVolume(),
+    gameSpeed: state.gameSpeed,
   };
   localStorage.setItem(OPTIONS_KEY, JSON.stringify(data));
 }
@@ -29,11 +37,13 @@ function loadOptions() {
     if (data.confirmMode) state.confirmMode = data.confirmMode;
     if (typeof data.showLastResult === 'boolean') state.showLastResult = data.showLastResult;
     if (typeof data.sfxVolume === 'number') setSfxVolume(data.sfxVolume);
+    if (data.gameSpeed && GAME_SPEED_CONFIG[data.gameSpeed]) applyGameSpeed(data.gameSpeed);
   } catch (_) { /* ignore corrupt data */ }
 }
 
 function init() {
   loadOptions();
+  applyGameSpeed(state.gameSpeed);
   state.minBet = 5;
   if (!state.seed) initRng(generateSeed());
   updateTopbar();
@@ -204,7 +214,7 @@ const gameActions = {
       setTimeout(() => {
         state.phase = "player";
         gameActions.onStand();
-      }, 450);
+      }, animDelay(450));
     });
   },
   onSurrender: () => {
@@ -260,7 +270,7 @@ function transitionToSplitHand() {
 
   if (state.splitFromAces) {
     showHint("Split Aces — auto-standing.");
-    setTimeout(() => onStand(), 400);
+    setTimeout(() => onStand(), animDelay(400));
   } else {
     showHint(`Play Hand ${state.splitHandIndex} of ${totalHands}.`);
     setPhaseControls();
@@ -381,6 +391,8 @@ ui.menuOptionsBtn.addEventListener("click", () => {
   ui.unitSizeInput.value = state.unitSize;
   ui.unitSizeRow.style.display = state.bettingStyle === "units" ? "" : "none";
   ui.showLastResultToggle.checked = state.showLastResult;
+  // Sync game speed radios
+  document.querySelectorAll('input[name="gameSpeed"]').forEach(r => { r.checked = r.value === state.gameSpeed; });
   // Sync audio controls
   sfxVolumeSlider.value = Math.round(getSfxVolume() * 100);
   sfxVolumeVal.textContent = sfxVolumeSlider.value;
@@ -416,6 +428,12 @@ ui.showLastResultToggle.addEventListener("change", () => {
   state.showLastResult = ui.showLastResultToggle.checked;
   setPhaseControls();
   saveOptions();
+});
+document.querySelectorAll('input[name="gameSpeed"]').forEach(radio => {
+  radio.addEventListener("change", (e) => {
+    applyGameSpeed(e.target.value);
+    saveOptions();
+  });
 });
 sfxVolumeSlider.addEventListener("input", () => {
   const v = Number(sfxVolumeSlider.value);
